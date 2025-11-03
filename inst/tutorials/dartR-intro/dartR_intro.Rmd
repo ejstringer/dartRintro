@@ -645,8 +645,14 @@ rm(tympo_data)
 
 :::
 
-But maybe we want a complete fresh start. We can remove all data created during our R session by navigating to the *Environment* pane and clicking on the little broom icon. You will be prompted with a pop up box, just select *yes* if you are sure you want a fresh start. 
+But maybe we want a complete fresh start. We can remove all data created during our R session by navigating to the *Environment* pane and clicking on the little broom icon 🧹. 
 
+
+::: { .my-solution}
+
+Select the broom icon, you will then be prompted with a pop up box, just select *yes* if you are sure you want a fresh start. 
+
+:::
 
 This removes everything from our environment making it out as if we have started a whole new R session. 
 
@@ -682,36 +688,6 @@ metrics
 
 If you want to save `metrics` you can do so by using `write.csv()`. But first we need to define where it will go. If you are working within your own console your R session should be pointing to the location of your R project (you would have created an R project during Ex 1-1.). But within this tutorial it is pointing to a temporary drive which can be pretty tricky to find. 
 
-:::{ .my-solution}
-
-So, to save `metrics` let's get your working directory and just copy paste it into the below console. You can get your working directory by typing `getwd()` into your console.
-
-```{r eval = FALSE}
-getwd()
-```
-
-:::
-
-
-```{r extwo16, exercise=TRUE}
-filelocation <- system.file(package = 'dartRintro', 'extdata', 'Tympo_metadata.csv')
-metrics <- read.csv(filelocation)
-write.csv(metrics, 'replace_with_your_wd.../tympo_meta.csv')
-```
-
-Let's check if it was save in the correct location. It is probably a good idea to move the file into your data folder you should of created during Ex 1-1. 
-
-
-::: { .my-solution}
-
-If it was saved in your working directory (`getwd()`), you can load it into your R console with the following code:
-
-```{r eval = FALSE}
-metrics <- read.csv(paste0(getwd(), '/tympo_meta.csv'))
-```
-
-:::
-
 
 ::: {.my-callout}
 
@@ -741,15 +717,114 @@ sort(svl)
 
 Functions are at the essence of coding and we will be introducing you to dartR specific functions in the chapters ahead. There is a lot more you can learn about functions, this is just the beginning.
 
+::: {.my-solution}
+
+If you want information about a function you can simply type the function name including empty round brackets with a question mark before it, `?sort()`.
+
+:::
+
 ::: {.my-callout}
 
 For a more detailed account of working with functions in R, refer to the AI summary on functions. 
 
 :::
 
-## Worked Ex 3-1
+
+## Worked Ex 3-1: Read in SNPs
 
 It is time to start working in the dartRverse! Welcome
 
-The first place
+### Working directory
+
+A first step is to make sure you have set your working directory. If you are in a project the working directory should be the folder location of your project. 
+
+::: {.my-solution icon="false"}
+If you haven't already, create a project using the RStudio menu (File - New Project). Your project will become the default directory for files but you can change the the directory by using The RStudio menu (Session - Set Working Directory). Alternatively use `setwd()`
+:::
+
+### 
+
+Once you have your working directory setup it is a good idea to open an R script file (File - New File - R Script or use shortcut keys ctrl/cmd + shift + N) to write your code, instead of straight to the console.
+
+::: {.my-solution icon="false"}
+Then you need to load in **dartRverse** using the `library()` function
+
+```{r eval = FALSE}
+library(dartRverse)
+```
+
+:::
+
+### 
+
+By loading in the **dartRverse** package it should automatically load in **dartR.base** and **dartR.data**. These are packages we need for this tutorial.
+
+::: {.my-solution icon="false"}
+Set the global verbosity level to 3 to provided detailed diagnostics, add `gl.set.verbosity(3)` to your R script.
+
+:::
+
+### Download raw data
+
+Now to the Canberra grassland earless dragon genetic data. Let's start by downloading the SNP data and associated metadata and saving them in a folder called **data**. 
+
+- *link to SNP file* or run code below. This is the set of SNP data for CGEDs, in 2-row format as would be supplied by [Diversity Arrays Technology Pty Ltd](https://www.diversityarrays.com).
+
+```{r eval = FALSE}
+write.csv(system.file("extdata",
+                      "Report_DTym25-13579_10_moreOrders_SNP_1.csv",
+                      package = "dartRintro"),
+          './data/Report_DTym25-13579_10_moreOrders_SNP_1.csv')
+```
+
+
+- *link to metadata file* or run code below. Recall that the individual metadata comprise attributes assigned to each individual.
+
+```{r eval = FALSE}
+write.csv(system.file("extdata",
+                      "Tympo_metadata.csv", 
+                      package = "dartRintro"),
+          './data/Tympo_metadata.csv')
+```
+
+### Read the data into dartR
+
+::: {.my-solution icon="false"}
+Read the data from [Report_DTym25-13579_10_moreOrders_SNP_1.csv]{style="color:blue; font-family: 'Courier New';"} into a dartR object and assign the individual metrics using `gl.read.dart()`
+
+Name your dartR object `gl`
+:::
+
+```{r, eval = FALSE}
+gl <- gl.read.dart(filename="./data/Report_DTym25-13579_10_moreOrders_SNP_1.csv",
+                         ind.metafile="./data/Tympo_metadata.csv")
+```
+
+
+```{r, echo = FALSE}
+gl <- gl.read.dart(filename=system.file("extdata", "Report_DTym25-13579_10_moreOrders_SNP_1.csv", package = "dartRintro"),
+                   ind.metafile=system.file("extdata", "Tympo_metadata.csv", package = "dartRintro"))
+```
+
+## Worked Ex 3-2: Interrogate
+
+### Interrogate the dartR genlight object
+
+Let's examine the contents of the dartR object.
+
+### 
+
+Just before we do, lets do a quick refresher of what a dartR object actually is, of course if you want more background check out the [ebook chapter](http://dartr.biomatix.org/dartR) associated with this tutorial.
+
+### 
+
+If you are familiar with genlight objects, a dartR object is effectively a version of a genlight object that is specific to the dartR package suite. A genlight object is a data structure used to efficiently store and analyse large genetic marker data. It includes the allelic state for each SNP called and for every individual genotyped.
+
+### 
+
+Additionally it also includes the metadata associated with the individuals genotyped and the SNP loci called. That's a lot of information! So lets learn how to interrogate our dartR object.
+
+### CGED 
+
+
 

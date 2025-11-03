@@ -485,3 +485,37 @@ a:hover, a:focus {
   height: auto;
   object-fit: contain;
 }
+
+/* ##############   callout   ############# */
+
+.my-callout {
+  margin: 1em 0;
+  padding-left: 5px;
+  border: 2px solid gold;
+  border-left: 10px solid gold;
+  border-radius: 10px;
+}
+
+.my-callout {
+  margin-left: 15;
+  padding-left:  60px;
+  padding-top:  15px;
+  padding-bottom: 0.1em;
+  color: black;
+  background-color: #e5e5e5;
+  border-top-right-radius: 10px;
+  font-size: 1em;
+  font-weight: bold;
+  background-size: 40px;
+  background-repeat: no-repeat;
+  background-position: 15px center;
+  background-image: url("img/icons8/solution-48.png");
+}
+
+.my-callout-container {
+  padding-top: 5px;
+  padding-left: 10px;
+  color: black;
+  background-color: white;
+  border-bottom-right-radius: 10px;
+}
