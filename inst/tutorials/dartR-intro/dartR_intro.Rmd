@@ -66,7 +66,7 @@ But first, try running the code below (press the button that says *run code*)
 
 ###
 
-Did you notice the tick that is showing before the *R cod box* heading after running the code?
+Did you notice the tick that is showing before the *R code box* heading after running the code?
 
 ### 
 
@@ -156,9 +156,9 @@ You can create a project in six easy steps (see fig below):
   
   4. The next step is to name your project (i.e. folder name - how about *dartR_tympos*)
   
-  5. Then choose a location on your computer where you want to store your ([Browse...]{style="color:#a3a3a3; font-family:'Arial'"} for easy navigation)
+  5. Then choose a location on your computer where you want to save your project ([Browse...]{style="color:#a3a3a3; font-family:'Arial'"} for easy navigation)
   
-  6. Finally, all you need to to is press **Create Project**
+  6. Finally, all you need to do is press **Create Project**
   
   
 ![](images/project.png){.class height="750"}
@@ -185,7 +185,7 @@ lapply(c('code', 'data', 'figures', 'output'), dir.create)
 
 ### Organising scripts
 
-A nice aspect of RStudio's R editor is that it has a way to create sections within your code, similar to word's headings functions. First open a new file: [File | New File | R Script]{style="color:#a3a3a3; font-family:'Arial'"}  
+A nice aspect of R scripts in RStudio is that there is a way to create sections when writing code, similar to Microsoft Word headings. First open a new file: [File | New File | R Script]{style="color:#a3a3a3; font-family:'Arial'"}  
 
 To define a heading you use hash symbols (# = level 1 heading, ## = level 2 heading, etc...) followed by the heading name and then at least four dashes. 
 
@@ -201,7 +201,7 @@ Here is an example of what it would look like
 
 You can also use ctrl + Shift + R as a shortcut to define level 1 headings.
 
-What is nice is that then if you click on the outline at the top-right of your R script (indicated by the red arrow below) it will show you the headings in your script and you can also use it to navigate to different parts of your code by clicking on the headings in the outline.
+What is nice is that then if you click on the outline at the top-right of your R script (indicated by the red arrow in the figure below) it will show you the headings in your script and you can also use it to navigate to different parts of your code by clicking on the headings in the outline.
 
 ![](images/outline.png)
 
@@ -213,7 +213,7 @@ Now lets get into some actual coding!
 
 The first step is to get an overview of our samples. To do this lets use the dragon's individual metrics data. But before jumping in, let's get a bit of an overview of how R works.
 
-R works with objects, that is, with self-contained entities that have defined attributes. The advantage of objects is that when you use one in calculations, R knows what it is and how to handle it in the calculations.
+R works with objects, that is, with self-contained entities that have defined attributes. The advantage of objects is that when you use one in calculations, R knows what it is and how to handle it in the calculation.
 
 When you create an object in R, attributes are assigned to it by default. The decision is made behind the scenes. 
 
@@ -266,7 +266,7 @@ As you should be able to see, this is a logical variable. This is a key part of 
 
 ### Vectors (containing ordered set of values of the same type)
 
-Now let's define another type of R object, that can include more than a single value, to keep track of the first five dragons captured. We will need three vectors, the first containing their ids(AA1-AA5), second their age (J, J, SA, A, SA), and third their snout-vent-length in mm (36,33,38,66,45). We use `c()` to define vectors. Fill in the code below with the information provided for the five dragons. Don't forget to include quotations around anything that is not a number. 
+Now let's define another type of R object, that can include more than a single value, to keep track of the first five dragons captured. We will need three vectors, the first containing their ids (AA1-AA5), second their age (J, J, SA, A, SA), and third their snout-vent-length in mm (36,33,38,66,45). We use `c()` to define vectors. Fill in the code below with the information provided for the five dragons. Don't forget to include quotations around anything that is not a number. 
 
 When you assign values there is no output, so if you want to see the results of what you have created don't forget to put the name of your R object on a new line, like we have done below.
 
@@ -286,7 +286,7 @@ age <- c('J', 'J', 'SA', 'A', 'SA')
 svl <- c(36, 33, 38, 66, 45)
 ```
 
-Vectors can be subset using square brackets `[]`. Let's first just look at our adult dragons length. It is the fourth dragon in our vector list so we would place 4 within the brackets. We can even remove the adult in the same fashion, just by adding a minus symbol, -4. 
+Vectors can be subset using square brackets `[]`. Let's first just look at our adult dragon's length. It is the fourth dragon in our vector list so we would place 4 within the brackets. We can even remove the adult in the same fashion, just by adding a minus symbol, -4. 
 
 ```{r extwo5, exercise=TRUE}
 svl <- c(36, 33, 38, 66, 45)
@@ -313,7 +313,7 @@ svl[1:2] #Juveniles
 svl[3:5] #adults and sub-adults
 ```
 
-What about only sub-adults. For them we would need to define positions 3 and 5 using `c()` within the square brackets. Another way to access parts of a vector are using conditional statements. Conditional statements produce logical outputs. Let's try the *equals* (`==`) condition for sub-adults as well and see that it has the same result as defining our sub-adults using `c()`. The opposite to the *equals* condition is the *not equals* (`!=`), similar to adding the minus sign in front of `c()`.  
+What about only sub-adults. For them we would need to define positions 3 and 5 using `c()` within the square brackets. Another way to access parts of a vector are using conditional statements. Conditional statements produce logical outputs. Let's try the *equals* (`==`) condition for sub-adults as well and see that it has the same result as defining our sub-adults using `c()`. 
 
 ```{r extwo7, exercise=TRUE}
 age <- c('J', 'J', 'SA', 'A', 'SA')
@@ -327,9 +327,14 @@ svl[c(3,5)] # c() or -c()
 svl[age == 'SA'] # conditional statement (or change !=)
 ```
 
+The opposite to the *equals* condition is the *not equals* (`!=`), similar to adding the minus sign in front of `c()`. Why not give it a try by adjusting the code above, again expecting the same output for both `-c()` and `!=` statements. 
+
+You should by now have the gist. A vector is a data structure that holds an ordered set of numbers, each of which can be addressed by its position in the ordered set, or by applying some logical condition, using square brackets.
+
+
 ### Factors
 
-Factors are special types of vectors whose values have labels associated with them. For example, we might create a character vector containing a combined sex and maturity code for first five dragons caught (J, J, M, M, F).
+Factors are special types of vectors whose values have labels associated with them. For example, we might create a character vector containing a combined sex and maturity code for the first five dragons caught (J, J, M, M, F).
 
 Converting a vector to a factor causes the values, in alphabetical order, to be assigned numbers, and those numbers to be assigned labels. 
 
@@ -730,16 +735,22 @@ For a more detailed account of working with functions in R, refer to the AI summ
 :::
 
 
-## Worked Ex 3-1: Read in SNPs
+## Worked Ex 3-1: Load and save
 
-It is time to start working in the dartRverse! Welcome
+It is time to start working in the dartRverse! Welcome!
+
+Let's start with an overview of the data, for further details check out [The data]{style="color:#cc9900"} tab in the left sidebar. 
+
+You have been tasked in providing the management team with an assessment of the genetic status of the species. Given the low number of individuals remaining in the wild, managements main concern is whether the dragons are losing genetic diversity. **But before we can get into a genetic assessment of the species, there are a number of important steps to go through before hand**.
 
 ### Working directory
 
 A first step is to make sure you have set your working directory. If you are in a project the working directory should be the folder location of your project. 
 
 ::: {.my-solution icon="false"}
-If you haven't already, create a project using the RStudio menu (File - New Project). Your project will become the default directory for files but you can change the the directory by using The RStudio menu (Session - Set Working Directory). Alternatively use `setwd()`
+If you haven't already, create a project using the RStudio menu (File - New Project). Refer to Worked Ex 1-1 for details. Your project will become the default directory for files.
+
+You can change the directory by using The RStudio menu (Session - Set Working Directory). Alternatively use `setwd()`
 :::
 
 ### 
@@ -793,24 +804,34 @@ write.csv(system.file("extdata",
 Read the data from [Report_DTym25-13579_10_moreOrders_SNP_1.csv]{style="color:blue; font-family: 'Courier New';"} into a dartR object and assign the individual metrics using `gl.read.dart()`
 
 Name your dartR object `gl`
-:::
 
 ```{r, eval = FALSE}
-gl <- gl.read.dart(filename="./data/Report_DTym25-13579_10_moreOrders_SNP_1.csv",
+
+snpfile <- "./data/Report_DTym25-13579_10_moreOrders_SNP_1.csv"
+gl <- gl.read.dart(filename=snpfile,
                          ind.metafile="./data/Tympo_metadata.csv")
 ```
 
+:::
+
+
+This is the output you should see when reading in the data.
 
 ```{r, echo = FALSE}
 gl <- gl.read.dart(filename=system.file("extdata", "Report_DTym25-13579_10_moreOrders_SNP_1.csv", package = "dartRintro"),
                    ind.metafile=system.file("extdata", "Tympo_metadata.csv", package = "dartRintro"))
 ```
 
-## Worked Ex 3-2: Interrogate
+Well done, you should have now successfully read in the dragons genetic data, ready to interrogate.
 
-### Interrogate the dartR genlight object
+### Save as .rds
 
-Let's examine the contents of the dartR object.
+save
+
+
+## Worked Ex 3-2: dartR object
+
+Let's examine the contents of the Tympo dartR object.
 
 ### 
 
@@ -824,7 +845,59 @@ If you are familiar with genlight objects, a dartR object is effectively a versi
 
 Additionally it also includes the metadata associated with the individuals genotyped and the SNP loci called. That's a lot of information! So lets learn how to interrogate our dartR object.
 
-### CGED 
+### Data overview
+
+First let's confirm our `gl` is a dartR object using `class()`. Then to examine `gl` we simply need to run it on a new line and it will provide information about our data. 
+
+```{r gl}
+gl <- tympo.gl
+
+```
+
+
+```{r exthree1, exercise=TRUE, exercise.setup = "gl"}
+class(...)
+gl
+
+```
+
+```{r exthree1-solution}
+class(gl)
+gl
+```
+
+Another useful way to get an overview of our data is the basic report function,
+`gl.report.basics()`. Within the function you can include the argument `verbose =` and set it as either 0, 1, 2, or 3, depending on the detail of output you want. Setting verbose to 0 will result in no output. 
+
+
+```{r exthree2, exercise=TRUE, exercise.setup = "gl"}
+gl.report.basics(...)
+
+```
+
+```{r exthree2-solution}
+gl.report.basics(gl, verbose = 1)
+
+```
+
+
+## Worked Ex 3-3: Ind metrics
+
+## Worked Ex 3-4: Loc metrics
+
+## Worked Ex 4-1: Manipulate
+
+## Worked Ex 4-2: Report
+
+## Worked Ex 4-3: History
+
+## Worked Ex 5-1: Filtering
+
+## Worked Ex 6-1: Visualise
+
+
+
+
 
 
 

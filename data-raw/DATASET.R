@@ -221,6 +221,16 @@ summary(lm(metaweights$weight~metaweights$svl+metaweights$age))
 
 head(tw_final@other$ind.metrics)
 
+levels(tw_final@other$ind.metrics$pop) <- c('Googong', 'Gundaroo', 'Royalla', 'Unknown', 'Tuggeranong')
+
+pop(tw_final) <- tw_final@other$ind.metrics$pop
+tw_final@pop
+
+
+tw_final@other$ind.metrics$id[order(tw_final@other$ind.metrics$year)] <- paste0('AA', 24001:(24000+nInd(tw_final)))
+tw_final@ind.names <- tw_final@other$ind.metrics$id
+
+
 write.csv(tw_final@other$ind.metrics, './inst/extdata/Tympo_metadata.csv',
           row.names = F)
 
