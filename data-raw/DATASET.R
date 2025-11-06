@@ -166,17 +166,42 @@ h %>%
 
 # csv keep files ----------------------------------------------------------
 
+
 loc_data <- read.csv('./data-raw/Report_DTym25-12345_10_moreOrders_SNP_1.csv',
                      header = F)
 
-
+## ids are in row 7
 loc_data[1:9, 30:40]
 row6 <- loc_data[7,]
 
+## find which column ids start
 locmet <- which(row6 == 'RepAvg')
 indkeep <- which(row6 %in% tw_final@ind.names) 
 
 loc_data_keep <- loc_data[,c(1:locmet, indkeep)]
+
+# dataframe to get new ids in same order as SNP csv
+newids <- data.frame(id = tw_final@other$ind.metrics$id[order(tw_final@other$ind.metrics$year)],
+                     id2 = paste0('AA', 24001:(24000+nInd(tw_final)))) 
+
+new_loc_ids[new_loc_ids$id %in% new_loc_ids$id[duplicated(new_loc_ids$id)],]
+
+new_loc_ids <- data.frame(id = unlist(loc_data_keep[7,-c(1:24)]))%>% 
+  left_join(newids)
+
+
+# assign new ids
+table(loc_data_keep[7,-c(1:24)]==new_loc_ids$id)
+loc_data_keep[7,-c(1:24)] <- new_loc_ids$id2
+
+tw_final@other$ind.metrics$id[order(tw_final@other$ind.metrics$year)] <- newids$id2
+tw_final@ind.names <- tw_final@other$ind.metrics$id
+
+new_loc_ids$id %>% duplicated %>% table
+
+
+
+# save new data
 
 write.csv(loc_data_keep,
           './data-raw/Report_DTym25-13579_10_moreOrders_SNP_1.csv',
@@ -225,10 +250,6 @@ levels(tw_final@other$ind.metrics$pop) <- c('Googong', 'Gundaroo', 'Royalla', 'U
 
 pop(tw_final) <- tw_final@other$ind.metrics$pop
 tw_final@pop
-
-
-tw_final@other$ind.metrics$id[order(tw_final@other$ind.metrics$year)] <- paste0('AA', 24001:(24000+nInd(tw_final)))
-tw_final@ind.names <- tw_final@other$ind.metrics$id
 
 
 write.csv(tw_final@other$ind.metrics, './inst/extdata/Tympo_metadata.csv',

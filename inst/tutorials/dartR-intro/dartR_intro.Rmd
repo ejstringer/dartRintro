@@ -883,9 +883,171 @@ gl.report.basics(gl, verbose = 1)
 
 ## Worked Ex 3-3: Ind metrics
 
+Let's get familar with some of the most important components to our data. First, we want to check how many individuals were genotyped and then how many per population. We can check the number of individuals with `nInd()` and the number of populations with `nPop()`.
+
+```{r exthree3, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree3-solution}
+nInd(gl)
+nPop(gl)
+
+```
+
+That's interesting, if we look at the map under [The data]{style="color:#cc9900"} tab it shows only four populations. Let's check what the population names are using `popNames()` to try and figure out what is going on.
+
+```{r exthree4, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree4-solution}
+popNames(gl)
+
+```
+
+
+Ok, that makes more sense, we have a population called Unknown, so not an actual population. Let's check how many individuals are in this *unknown* population. we can do this using `pop()`, to list all the individuals populations, within `table()` that counts the number of values. You can check the output of `pop()` first if you are interested.
+
+```{r exthree5a, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree5a-solution}
+table(pop(gl))
+
+```
+
+Well that's good to know, it is just the one individual with an unknown population. Let's do a bit of fancy coding to figure out its id. we can use the function `indNames()` and square brackets with a conditional statement where `pop(gl) == 'Unknown'`. Give it ago below.
+
+```{r exthree5, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree5-solution}
+indNames(gl)[pop(gl) == 'Unknown']
+
+```
+
+Alright, not super informative, what about we get more information from the individual data about our unknown individual. 
+
+dartR objects store individual metadata that can seem a little hard to access. But don't worry it's easier than it looks, all you need to know is the metadata's *address*. The individual metadata lives at `gl@other$ind.metrics`.
+
+Let's first check the names of our columns in the metadata using `names()`. Another useful function for a quick overview of a dataframe is `head()` which shows you the column names and the first six entries. 
+
+```{r exthree6, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree6-solution}
+names(gl@other$ind.metrics)
+head(gl@other$ind.metrics)
+
+```
+
+We have quite a lot of information for our dragons. Importantly we have latitudes and longitudes if we want to do any distance based analyses and we also have sex for detecting sex linkage, which will come later.   
+
+Great now lets check the info about our unknown individual. We can use the same condition as we did before but now the square brackets come after the `gl@other$ind.metrics` and need a comma to distinguish between rows and columns, remember `[rows, column]`.
+
+```{r exthree7, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree7-solution}
+gl@other$ind.metrics[pop(gl) == 'Unknown',]
+
+```
+
+All we know is that it is a Canberra grassland earless dragon. 
+
+Alright, I think it is time to check out some of the genetic data.
+
 ## Worked Ex 3-4: Loc metrics
 
+Let's start by undertaking some basic diagnostics. First let's find out how many loci are in our dataset, using `nLoc()`.
+
+```{r exthree8, exercise=TRUE, exercise.setup = "gl"}
+
+```
+
+```{r exthree8-solution}
+nLoc(gl)
+```
+
+Ok well that seems like an low number of SNPs. I am more used to seeing SNPs in the tens of thousands, maybe someone has tampered with the data, or maybe forgot to provide the another data file with more SNPs. DArT usually sends two or even three files if there are more than 50,000 SNPs. Let's leave it for now and see what we can do with the SNPs we have.
+
+To get a better understanding of how the SNP data is stored, first read chapter three of the ebook but then, we can us `as.matrix` to see the actual state of the SNPs for each individual. To make it a little easier to visualize lets look at a subset of individuals and SNPs, we use square brackets for this, `[individuals, SNPs]`.
+
+Let's display the genotypes for the first 3 individuals and the first 6 loci. After running the below code, try showing the first 5 individuals and first 10 loci.
+
+```{r exthree9, exercise=TRUE, exercise.setup = "gl"}
+as.matrix(gl)[1:3,1:6]
+
+```
+
+```{r exthree9-solution}
+as.matrix(gl)[1:5,1:10]
+
+```
+
+Well I am glad we could look at more individuals and loci, there is not much variation in the first three individuals and first six loci, they are either coded as 0, which indicates a homozygote for the reference allele, or NA for missing. 
+
+When we look at more loci, we can see that loci ten has way more diversity, with homozygotes for both the reference (0) and alternative (2) alleles as well as a couple of homozygotes (1).
+
+There seems to be a lot more missing data in the first five loci then the next five. We can actually check this by looking at the loc metrics.
+
+The locus metadata included in the dartR object are those provided as part of your Diversity Arrays Technology report. These metadata are obtained from the Diversity Arrays Technology [csv]{style="color:blue; font-family: 'Courier New';"} file when it is read in to the genlight object using `gl.read.dart()`. The locus metadata are held in an R data.frame that is associated with the SNP data as part of the dartR object.
+
+The loc metrics are similarly located as the ind metrics, `gl@other$loc.metrics`. Let's first look at the names of the loc metrics using `names()`.
+
+```{r exthree10, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree10-solution}
+names(gl@other$loc.metrics)
+
+```
+
+There is quite a bit of information in there. We are interested in the `CallRate` column for the first ten loci. We can access columns just like with any other dataframe using `$`. We can then use `[]` to subset the first 1:10 loci. If you want you could show the first 1:5 then 6:10.
+
+```{r exthree11, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree11-solution}
+gl@other$loc.metrics$CallRate[1:5]
+gl@other$loc.metrics$CallRate[6:10]
+
+```
+
+Do you think the first loci have more missing data?
+
+Instead of just looking at the first ten, why don't we do a histogram of all our loci's missing data rate, i.e., call rate. Instead of subsetting let's use the `hist()` on the `CallRate` instead.
+
+```{r exthree12, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree12-solution}
+hist(gl@other$loc.metrics$CallRate)
+
+```
+
+Great work! You really must be getting to know the data by now.
+
 ## Worked Ex 4-1: Manipulate
+
+
 
 ## Worked Ex 4-2: Report
 
