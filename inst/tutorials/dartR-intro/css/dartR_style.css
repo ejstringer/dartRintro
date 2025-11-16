@@ -185,6 +185,16 @@ h4 {
     color: #3f3f3f;
 }
 
+/*-------- Code returns rmd --------*/
+pre.sourceCode {
+  background-color: #e8eae5;
+  
+}
+
+pre:not([class]) {
+    background-color: #e8eae5;
+    border: 1px solid #879;
+}
 
 /*------- In line code aesthetic --------*/
 code {

@@ -18,7 +18,7 @@ tw <- tympos[index,]
 index2 <- tw@other$ind.metrics$group !="Monaro"
 tw2 <- tw[index2,]
 tw2_5 <- gl.drop.ind(tw2, ind.list =  "AA61626")
-tw2_5 <- gl.drop.ind(tw2, ind.list =  "CK1 hatchling")
+tw2_5 <- gl.drop.ind(tw2_5, ind.list =  "CK1 hatchling")
 tw_final <- tw2_5
 nInd(tw_final)
 
@@ -258,6 +258,13 @@ write.csv(tw_final@other$ind.metrics, './inst/extdata/Tympo_metadata.csv',
 
 
 # data --------------------------------------------------------------------
-tympo.gl <- tw_final
+prjdir <- getwd()
+setwd('../dartR.intro/inst/extdata/')
+
+tympo.gl <- gl.read.dart('Report_DTym25-13579_10_moreOrders_SNP_1.csv',
+                         ind.metafile = 'Tympo_metadata.csv')
+tympo.gl@other$history
 usethis::use_data(tympo.gl, overwrite = TRUE)
+
+setwd(prjdir)
 

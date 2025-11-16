@@ -27,6 +27,7 @@ library(htmltools)
 #options(repos = BiocManager::repositories())
 library(dartR.data)
 library(dartR.base)
+library(dartR.sexlinked)
 gl.set.verbosity(3)
 
 library(dartRintro) # for tutorial data
@@ -236,13 +237,13 @@ class(species)
 Next, we want to define the year when we started collecting tissue samples. Fill in the code similar to above, but in R numbers do not need quotation marks ('').
 
 ```{r extwo2, exercise=TRUE}
-year <- ...
+year <- ... ## Change to populations!!!
 year
 class(...)
 ```
 
 ```{r extwo2-solution}
-year <- 2006
+year <- 2006 ## Change to populations!!!
 year
 class(year)
 ```
@@ -353,7 +354,7 @@ sexcode <- c('J','J','M','M','F')
 
 ::: {.my-callout}
 
-For a more detailed account of working with vectors in R, refer to the AI summary on vectors. 
+For a more detailed account of working with vectors in R, refer to the [AI summary on vectors](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Vectors.htm). 
 
 :::
 
@@ -432,7 +433,7 @@ The length of the vector needs to be the same as the number of rows in the dataf
 
 ::: {.my-callout}
 
-For a more detailed account of working with dataframes in R, refer to the AI summary on dataframes. 
+For a more detailed account of working with dataframes in R, refer to the [AI summary on dataframes](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Data_Frames.htm). 
 
 :::
 
@@ -509,7 +510,7 @@ We coded our genotypes using characters, but often times genetic data are coded 
 
 ::: {.my-callout}
 
-For a more detailed account of working with matrices in R, refer to the AI summary on matrices and arrays. 
+For a more detailed account of working with matrices in R, refer to the [AI summary on matrices](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Matrices.htm) and the [AI summary on arrays](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Arrays.htm). 
 
 :::
 
@@ -583,7 +584,7 @@ Now you should be able to see that each element is distinguished by `$element_na
 
 ::: {.my-callout}
 
-For a more detailed account of working with lists in R, refer to the AI summary on lists. 
+For a more detailed account of working with lists in R, refer to the [AI summary on lists](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Lists.htm). 
 
 :::
 
@@ -730,7 +731,7 @@ If you want information about a function you can simply type the function name i
 
 ::: {.my-callout}
 
-For a more detailed account of working with functions in R, refer to the AI summary on functions. 
+For a more detailed account of working with functions in R, refer to the [AI summary on functions](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Functions.htm). 
 
 :::
 
@@ -817,7 +818,7 @@ gl <- gl.read.dart(filename=snpfile,
 
 This is the output you should see when reading in the data.
 
-```{r, echo = FALSE}
+```{r datainput, echo = FALSE, cache=TRUE}
 gl <- gl.read.dart(filename=system.file("extdata", "Report_DTym25-13579_10_moreOrders_SNP_1.csv", package = "dartRintro"),
                    ind.metafile=system.file("extdata", "Tympo_metadata.csv", package = "dartRintro"))
 ```
@@ -1047,19 +1048,572 @@ Great work! You really must be getting to know the data by now.
 
 ## Worked Ex 4-1: Manipulate
 
+Well we are really getting a sense of the data. But we decide, given how we don't know the origin of the one sample, to remove the unknown sample from our data. We can actually do this in two ways, because we are just removing one individual that is uniquely asorted into it's own unknown population, we can use `gl.drop.ind()` or `gl.drop.pop()`. Both these functions contain similar arguments, `pop.list =` or `ind.list =`, for specifying which individual or population you would like to drop. In a previouse example we identified the individual id as **AA24617**. Try using `gl.drop.ind()` or `gl.drop.pop()` to remove the unknown individual, and save the new dartR object as `glknown` instead of `gl`.
+
+```{r exthree13, exercise=TRUE, exercise.setup = "gl"}
 
 
-## Worked Ex 4-2: Report
+```
 
-## Worked Ex 4-3: History
+```{r exthree13-solution}
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+```
 
-## Worked Ex 5-1: Filtering
+Great know lets continue on using the `glknown`. 
+
+```{r gl2}
+gl <- tympo.gl
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+
+```
+
+### Management additional information
+
+You recieve additionaly information from management. They tell you that the Tuggeranong population is actually more accurately referred to as the Bonython population and that Googon and Royalla are considered the one connected population and usually referred to as the South Canberra population.
+
+You go ahead and make the changes they recommend. To rename a population you can use `gl.rename.pop()`. Use `popNames()` to check that the renaming was successful.
+
+
+```{r exthree14, exercise=TRUE, exercise.setup = "gl2"}
+glknown2 <- gl.rename.pop(glknown, old = '...', new = '...')
+
+```
+
+```{r exthree14-solution}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+popNames(glrename)
+
+```
+
+Great! It is worth noting that the pop names have changed but the ind.metrics have stayed the same, they still hold the old naming convention, Tuggeranong. Feel free to check it above.
+
+Additionally to renaming, let's try merging our two populations using `gl.merge.pop()`. Use `popNames()` to check again.
+
+```{r exthree15, exercise=TRUE, exercise.setup = "gl2"}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+gl3pops <- gl.merge.pop(glrename, old = c(...), new = '...')
+
+```
+
+```{r exthree15-solution}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+gl3pops <- gl.merge.pop(glrename, old = c('Googong', 'Royalla'), new = 'South Canberra')
+popNames(gl3pops)
+
+```
+
+Even though you have merged the population, you consider the recommendation uniformed, there has been no research on the dispersal between these sampling locations. They could make up one connected population or maybe the they could act as two isolated populations. You decide to leave them as four populations for now, until you get a chance to assess them genetically. 
+
+What you are really interested in is the yearly sampling. So you decide to reassign population to year sampled using `gl.reassign.pop()`. Check that the change was executed and the sample sizes in each year, remeber you can use the function `pop()` and `table()`  to acheive this.
+
+```{r exthree16, exercise=TRUE, exercise.setup = "gl2"}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+glyear <- gl.reassign.pop(..., as.pop = '...')
+
+```
+
+```{r exthree16-solution}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+glyear <- gl.reassign.pop(glrename, as.pop = 'year')
+table(pop(glyear))
+
+```
+
+### History
+
+R objects keep a history check out the different histories of `gl`
+and `glyear`, which was derived from `gl`. This can be useful as often times there are a lot of steps in preparing genetic data for downstream analyses. The history is located at `gl@other$history`.
+
+```{r exthree17, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exthree17-solution}
+gl@other$history
+glyear@other$history
+```
+
+## Worked Ex 4-3: Report
+
+We have been manipulating our dartR object based on individual metrics, now it is time to get our SNPs ready for analysis. We will use the report functions. In each case, think about what threshold you might define to discard loci or individuals with poor quality (quality control).
+
+dartR has a large number of report functions (and associated filter functions to be introduced in the next example). We will go through some of the main ones. Just remember there is a lot of nuance when it comes to filtering.  
+
+**Important Note**: Do not assign the output of the report function to your genlight object or you will overwrite your genlight object.
+
+Let's start with with a reminder of the different report functions introduced in the ebook. don't forget you can use `?gl.report.function`, replacing gl.report.function with the name of the report function you are interested in, to open the help file for more details.
+
+```{r eval = FALSE}
+gl.report.sexlinked()
+
+gl.report.callrate()
+
+gl.report.reproducibility()
+gl.report.rdepth()
+
+gl.report.monomorphs()
+gl.report.secondaries()
+
+gl.report.hamming()
+gl.report.taglength()
+gl.report.overshoot()
+
+```
+
+We have provided a text box below the report function for you to write an assessment based on 
+
+As is recommended, let's start with sexlinked.
+
+## 4-3.1: Sexlinked
+
+Linkage is an important consideration for many analyses. Fortunately, SNPs on separate sequence tags can be considered to assort independently because of the sparse nature of their sampling across the genome. However, if two SNPs occur in a non-recombining block of sequence, they will be co-inherited. This occurs for SNPs that reside in the non-recombining region of the sex chromosomes. They are referred to as sex-linked. `gl.report.sexlinked()` identifies putative sex-linked SNP loci.
+
+The dragons have a XY system (males being heterogametic) so we need to specify that in the function, using the argument `system =`. You will need to use lower case "xy". 
+
+```{r exfour1, exercise=TRUE, message=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour1-solution}
+gl.report.sexlinked(gl, system = 'xy')
+```
+
+An important requirement of identifying sexlinked markers is having identified males and females in your dataset. If you do not you will start with reporting on call rate instead.
+
+
+## 4-3.2: Call rate
+
+A filter for Call Rate can be applied to loci and to individuals. When filtering on loci, only those for which the associated SNP is called in at least a specified proportion will be retained. When filtering on individuals, only those individuals for which a specified percentage of loci are scored for a SNP polymorphism will be retained. 
+
+Recall that Call Rate for SNPs can arise from two sources. The first source is where a missing value arises because the sequence tag bearing the target SNP cannot be amplified – there has been a mutation at one or both of the restriction sites. The second source of missing values is where the read depth is insufficient to make a reliable call on the SNP. Either way, the SNP is not called and is recorded as NA.
+
+`gl.report.callrate()` summarises CallRate values for loci and individuals.  A locus can fail to call for an individual because the sequence tag was missed during sequencing (if a service with low read depth) or because of a mutation at one or both of the restriction enzyme sites or internal to the sequence tag. 
+
+### Call rate "loc"
+
+First let's see the report for call rate on loci of our data `gl`. To do this we need to the method within `gl.report.callrate()` using `method = "loc"`.
+
+```{r exfour2, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour2-solution}
+gl.report.callrate(gl, method = 'loc')
+```
+
+
+### 
+
+Each report function is matched with a filter function, e.g. `gl.filter.callrate()` (refer Chapter 5). What threshold would you choose?
+
+### Call Rate "ind"
+
+A second way of filtering on Call Rate is to remove individuals that have sequenced particularly poorly. This may occur if the associated samples are degraded in comparison with other samples. We again first report the Call Rate, this time for individuals.
+
+Now lets report on individual call rates. We use the same function as before but make the method equal to `"ind"`.
+
+```{r exfour3, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour3-solution}
+gl.report.callrate(gl, method='ind')
+```
+
+### 
+The output will include a list of populations and the Call Rate averaged across individuals, and a list of the top worst individuals in terms of their call rate. This will allow you to make a reasoned judgement on the impact of filtering out individuals.
+
+What threshold would you choose based on individuals?
+
+For further help, type `?gl.report.callrate`.
+
+## 4-3.3: Monomorphs
+
+
+`gl.report.monomorphs()` provides a count of polymorphic and monomorphic loci. 
+
+```{r exfour4, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour4-solution}
+gl.report.monomorphs(gl)
+```
+
+It is not always recommend to remove monomorphic loci, especially if you have subset your data and still intend to compare its genetic measures to the rest of your data. 
+
+###
+
+Matched with `gl.filter.monomorphs()`(refer Chapter 5). For further help, type `?gl.report.monomorphs`. Many functions also have a mono.rm option which, if TRUE, filters monomorphic loci.
+
+## 4-3.4 Secondaries
+
+Sequence tags can often contain more than one SNP, potentially up to 7 SNPs in a sequence tag of 69 bp. Alleles at these SNP loci are potentially co-inherited and so are linked. Because of their close proximity, these multiple SNPs within a single sequence tag (referred to in dartR as 'secondaries') are likely to be strongly linked (inherited together), which is problematic for many analyses. So, one might wish to filter out the multiple SNPs to leave only one per sequence tag.
+
+Diversity Arrays Technology include multiple SNPS in a single sequence tag each as separate records in the data provided with your report. The decision becomes, which SNP to retain, and which SNPs to discard. One strategy is to leave the filtering of secondaries until last, so that you are considering only those secondaries that have survived the earlier filtering on call rate, reproducibility and read depth. You can then choose one from the surviving secondaries at random (`method='random'`) or based on comparisons of reproducibility (RepAvg) and polymorphism information content (PIC) (`method='best'`). The call is `gl.report.secondaries()` which identifies and counts the number of SNP loci in each sequence tag. Try it on `gl`.
+
+```{r exfour5, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour5-solution}
+gl.report.secondaries(gl)
+```
+
+###
+
+It has the added feature of modelling the frequency distribution of SNP locus counts and estimating the zero class, that is, the number of (unreported) sequence tags that are invariant. This can be useful for correcting some estimates, such as heterozygosity.
+
+Note that the estimate of the zero class involves an iterative process that does not always converge to a satisfactory solution for lamda. In this case it did. Note also that the estimate of the zero class can have a very substantial error associated with it, especially if the count for class 0 exceeds the count for the class 1. Useful, but not infallible.
+
+Matched with `gl.filter.secondaries()`, which will retain only one SNP from each 69bp sequences, i.e. retaining only one sequence tag, using one of two methods: *random* selection or *best* call rate. 
+
+For further help, type `?gl.report.secondaries`.
+
+## 4-3.5: Reproducibility
+
+The reproducibility function summarises repAvg (SNP) or reproducibility (SilicoDArT) values for each locus. DArT runs technical replicates that allow for an assessment of the reliability of the scoring for each locus. 100% means that identical results were obtained for both technical replicates. 
+
+Try running the `gl.report.reproducibility()` on `gl`. 
+
+```{r exfour6, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour6-solution}
+gl.report.reproducibility(gl)
+```
+
+###
+
+Matched with `gl.filter.reproducibility()` (refer Chapter 5). 
+
+For further help, type `?gl.report.reproducibility`.
+
+## 4-3.6: Read depth
+
+`gl.report.rdepth()` reports an estimate of average read depth for each locus. Adequate read depth is desirable for analyses requiring accurate calls of heterozygotes in particular. 
+
+```{r exfour7, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour7-solution}
+gl.report.rdepth(gl)
+```
+
+
+###
+
+Matched with `gl.filter.rdepth()` (refer Chapter 5). 
+
+For further help, type `?gl.report.rdepth`.
+
+
+## 4-3.7: Other
+
+These we will just show you the output and you can make your assessment based on that. 
+
+### Hamming distance
+
+Hamming Distance is a measure of how similar two sequence tags are. There is a risk that two very similar sequence tags are from the same locus distinguished only by the rare read error. Sequence tags produced by DArT have already been filtered by Hamming Distance (typically threshold 3 bp) but you might choose to be more stringent. `gl.report.hamming()` will give you an indication of whether you have an issue to resolve or not. 
+
+```{r}
+#gl.report.hamming(gl) takes too long
+```
+
+###
+
+Matched with `gl.filter.hamming()` (refer Chapter 5). 
+
+For further help, type `?gl.report.hamming.`
+
+### Tag lengths
+
+Tag lengths (each bearing one or more SNPs) can vary substantially, typically from 20bp to 69 bp in the case of DArT data. `gl.report.taglength()` reports a frequency tabulation of sequence tag lengths. 
+
+```{r}
+gl.report.taglength(gl)
+```
+
+
+###
+
+Matched with `gl.filter.taglength()` (refer Chapter 5). For further help, type `?gl.report.taglength.`
+
+
+###
+
+Matched with `gl.drop.sexlinked()` (refer Chapter 5). For further help, type `?gl.report.sexlinked`.
+
+### Overshoot
+
+The overshoot report deals with a rare anomaly. Occasionally the adaptor sequence has close sequence homology with part of the sequence tag. When this occurs part of the sequence tag is eliminated and sometimes this carries the SNP with it. `gl.report.overshoot()` reports loci for which the SNP has been trimmed along with the adaptor sequence. 
+
+
+```{r}
+gl.report.overshoot(gl)
+```
+
+
+###
+
+Matched with `gl.filter.overshoot()` (refer Chapter 5). For further help, type `?gl.report.overshoot.`
+
+###
+
+**Well done!** That was a lot of reporting. Head back to the ebook for some prerequisite reading before the next worked example.
+
+
+## Worked Ex 5-1: Filter sequence
+
+After all those reports we should have a bit of an idea about the type of filtering we plan to do. So, referring back to your reports let's get started with some filtering. 
+
+A good place to start is with call rate. Because filtering on loci and individual call rates are so intertwined sometimes its good to play around with the sequence of these two filters. 
+
+### Visualise 
+
+First let's visualise our missing data using a smear plot `gl.smearplot()`
+
+```{r exfive, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfive-solution}
+gl.smearplot(gl)
+```
+
+### Filter call rate
+Let's now start with some call rate filtering. Run the code below and then remove the hash(#) from line 2 and rerun the code and see if it has an effect.   
+
+```{r exfive2, exercise=TRUE, exercise.setup = "gl2"}
+gl_cr <- gl
+#gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.5, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'loc', threshold = 0.95, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.95, verbose = 0)
+
+nLoc(gl_cr)
+nInd(gl_cr)
+
+```
+
+```{r exfive2-solution}
+gl_cr <- gl
+gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.5, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'loc', threshold = 0.95, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.95, verbose = 0)
+
+nLoc(gl_cr)
+nInd(gl_cr)
+gl.smearplot(gl_cr)
+```
+
+## Worked Ex 5-2: Filtering
+
+Alright now we understand a little about filter sequencing let's put together a filtering protocol. 
+
+
+```{r exfive3, exercise=TRUE, exercise.setup = "gl2"}
+gl_filter <- gl
+gl_filter <- gl.filter.callrate(gl_filter, method = 'loc', threshold = 0.95)
+gl_filter <- gl.filter.callrate(gl_filter, method = 'ind', threshold = 0.95)
+gl_filter <- gl.filter.reproducibility(gl_filter, threshold = 0.99)
+gl_filter <- gl.filter.rdepth(gl_filter, lower = 5, upper = 60)
+gl_filter <- gl.filter.monomorphs(gl_filter)
+gl_filter <- gl.filter.secondaries(gl_filter, method = 'random')
+
+
+```
+
+
+```{r glfilt}
+gl <- tympo.gl
+pop(gl) <- gl@other$ind.metrics$year
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+
+gl_filter <- glknown
+gl_filter <- gl.filter.callrate(gl_filter, method = 'loc', threshold = 0.95)
+gl_filter <- gl.filter.callrate(gl_filter, method = 'ind', threshold = 0.95)
+gl_filter <- gl.filter.reproducibility(gl_filter, threshold = 0.99)
+gl_filter <- gl.filter.rdepth(gl_filter, lower = 5, upper = 60)
+gl_filter <- gl.filter.monomorphs(gl_filter)
+gl_filter <- gl.filter.secondaries(gl_filter, method = 'random')
+
+```
+
+## Worked Ex 5-3: Recalculating
+
+Remember, the locus metrics are no longer valid if individuals or populations are deleted from the dataset. For example, if you filter out a population for which the individuals have particularly bad call rates, then the call rate parameter held in the locus metrics will no longer be accurate. It will need to be recalculated. This is true of many of the locus metrics.
+
+So, after filtering your data, it is wise to recalculate the locus metrics with
+
+
+```{r exfive4, exercise=TRUE, exercise.setup = "glfilt"}
+gl_filter <- gl.recalc.metrics(gl_filter)
+gl_filter
+```
+
+```{r exfive4-solution}
+gl_filter <- gl.recalc.metrics(gl_filter)
+```
+
+ 
+
+Similarly, when filtering has resulted in removal of some individuals or populations, variation at several loci may be lost. Some loci may even be scored as missing across all individuals. You may wish to remove these monomorphic loci from your dataset with
+
+
+```{r exfive5, exercise=TRUE, exercise.setup = "glfilt"}
+gl_filter <- gl.filter.monomorphs(gl_filter)
+```
+
+```{r exfive5-solution}
+gl_filter <- gl.filter.monomorphs(gl_filter)
+```
+
+Note that many functions have a mono.rm and recalc parameters that allow you to remove monomorphic loci or recalculate metrics on the fly.
+
+It is not a fatal error to forget to recalculate the locus metrics because dartR scripts will detect if they have not been recalculated and rectify this before they a particular locus metric is needed. 
+
 
 ## Worked Ex 6-1: Visualise
 
+Alright, our data are ready but before we investigate genetic diversity, we want to check the structure of our population. Was management right in thinking the Googong and Royalla are the one population? 
+
+A good first step for assessing structure is the beloved PCA, which you should have read all about already in the intro to dartR ebook Chapter 6 (link). if you haven't already, go check it out now and then come back to the worked examples. 
+
+Now that we know what a PCA does let's run a pca on our filtered data. There are two steps involved. First calculating our principle components using `gl.pcoa()`, then it is time for plotting using `gl.pcoa.plot()`. 
+
+
+### Principle components
+
+Let's start with our principle components, `gl.pcoa()`. 
+
+```{r exsix, exercise=TRUE, exercise.setup = "glfilt"}
+pc <- gl.pcoa(gl_filter)
+```
+
+
+There are quite a few outputs, importantly these outputs help define the number of significant axese that represent structure, rather than noise. It is common for people to only look at the first two axese when in reality they only represent a portion of the structure. It is usuasally worth investigating the other influencial axeses. But let's start with the first 2
+
+### Visualising PC1 and PC2
+
+```{r glfiltpc}
+gl <- tympo.gl
+pop(gl) <- gl@other$ind.metrics$year
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+
+gl_filter <- glknown
+gl_filter <- gl.filter.callrate(gl_filter, method = 'loc', threshold = 0.95)
+gl_filter <- gl.filter.callrate(gl_filter, method = 'ind', threshold = 0.95)
+gl_filter <- gl.filter.reproducibility(gl_filter, threshold = 0.99)
+gl_filter <- gl.filter.rdepth(gl_filter, lower = 5, upper = 60)
+gl_filter <- gl.filter.monomorphs(gl_filter)
+gl_filter <- gl.filter.secondaries(gl_filter, method = 'random')
+
+pc <- gl.pcoa(gl_filter)
+```
+
+```{r exsix2, exercise=TRUE, exercise.setup = "glfiltpc"}
+gl.pcoa.plot(pc, gl_filter)
+```
+
+Well it looks like there is some structure but we have it coloured by year. Let's add an `as.pop = "pop"` to see how our sampling locations segregate.
+
+```{r exsix3, exercise=TRUE, exercise.setup = "glfiltpc"}
+gl.pcoa.plot(pc, gl_filter)
+```
+
+```{r exsix3-solution}
+gl.pcoa.plot(pc, gl_filter, as.pop = 'pop')
+```
+
+
+### Visualising PC3 and PC4
+
+Now to look at other axese we can just include two arguments `yaxis = 3` and `xaxis = 4`, with the numbers associated with the principle component. 
+
+```{r exsix4, exercise=TRUE, exercise.setup = "glfiltpc"}
+gl.pcoa.plot(pc, gl_filter, as.pop = 'pop')
+```
+
+```{r exsix4-solution}
+gl.pcoa.plot(pc, gl_filter, as.pop = 'pop',yaxis = 3, xaxis = 4)
+```
+
+There doesn't seem much structure associated with location in these lower levels. 
+
+## Diversity
+
+Well done taking a first look at the structure of the Tympos. Next steps are evaluating diversity, but that will come later in the next ebook.
+
+But that brings us to the end of this worked example. Moving on there are integrative exercises for you to practice what you have learned. Give them ago and start to understand population genetic data in new ways. 
+
+
+## Exercise 1
+
+Tympo unknown
+
+## Exercise 2
+
+Macrobrachium is a large and cosmopolitan crustacean genus of high economic importance worldwide. The authors of this study investigated the morphological and molecular identification of freshwater prawns of the genus Macrobrachium in South, Southwest and Littoral regions of Cameroon in Africa. Seven species occur in the area:  M. vollenhovenii, M. macrobrachion, M. sollaudii, M. dux, M. chevalieri, M. felicinum and an undescribed Macrobrachium species. The objective of the study was to validate (or invalidate) the identified species based on their genetic profiles. A total of 93 individuals representing these species were subjected to genetic characterization using 1,814 DArT markers. This study is considered valuable for informing breeding design and genetic resource conservation programs for Macrobrachium in Africa.
+
+Refer to the original paper by Judith Makombu and her team for further detail on the study. 
+
+You are asked to use this dataset to apply what you have learned from this introductory eBook, drawing from across all Chapters of this eBook. Note that the data may have been modified for educational purposes and that you should refer to the original paper and its supplementary files for the definitive data, or contact the authors directly, if you wish to draw upon these data for research purposes.
+
+## Exercise 3
+
+The Western Sawshell Turtle Myuchelys bellii is an endangered species of freshwater turtle that resides in upstream regions of the Murray-Darling River drainage basin (MDB) in Australia. It is currently restricted to the upland regions of the Namoi, Gwydir and Border Rivers subdrainages of the MDB. Populations are through to have declined through a combination of river regulation, impoundment, and reduced flow connectivity, predation of eggs by foxes and pigs, and degradation of riparian vegetation and instream habitat. Populations are thought to be fragmented which makes the species particularly vulnerable to future rapid changes in climate, habitat and disease outbreak.
+
+The objective of this study, as yet unpublished, is to examine genetic structure across the range of the species with a view to informing options for its conservation management.
+
+You are asked to use this dataset to apply what you have learned from this introductory eBook, drawing from across all Chapters of this eBook. Note that the data may have been modified for educational purposes and should not be used for research purposes.
+
+
+## Exercise 4
+
+andscape-scale conservation needs to consider metapopulation dynamics declines of species facing multiple threats to their survival are to be abated or reversed. This study uses SNPs in support of decision-making in the context of metapopulations of the northern quoll Dasyurus hallucatus in the Pilbara of Western Australia. The landscape is subject to multiple uses and is a hotspot for biodiversity and mining. One objective of this study was to examine genetic structure across the range of the species with a view to informing options for its conservation management.
+
+This work has been published in Conservation Biology. You are encouraged to read this paper to gain a greater appreciation of the context of the analysis.
+
+You are asked to use this dataset to apply what you have learned from this introductory eBook, drawing from across all Chapters of this eBook. Note that the data may have been modified for educational purposes and should not be used for research purposes.
 
 
 
 
+## shiny app
+
+```{r, context="render", echo=FALSE}
+sliderInput("bins", "Number of bins:", min = 1, max = 50, value = 30)
+plotOutput("distPlot")
+```
+
+```{r, context="server"}
+output$distPlot <- renderPlot({
+  x <- faithful[, 2]  # Old Faithful Geyser data
+  bins <- seq(min(x), max(x), length.out = input$bins + 1)
+  hist(x, breaks = bins, col = 'darkgray', border = 'white')
+})
+```
 
 
+## shiny app two
+
+
+
+```{r, context="render", echo=FALSE}
+radioButtons('xax', label = 'PC for x axis',choices = 1:5,
+             selected = 1, inline = T)
+radioButtons('yax', label = 'PC for y axis',choices = 1:5,
+             selected = 2, inline = T)
+plotOutput("pcaPlot")
+```
+
+```{r, context="server"}
+
+output$pcaPlot <- renderPlot({
+  pc <- gl.pcoa(possums.gl, verbose = 0)
+  plotit <-gl.pcoa.plot(pc, possums.gl, xaxis = input$xax,
+                         yaxis = input$yax)
+})
+```
