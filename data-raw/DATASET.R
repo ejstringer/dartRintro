@@ -9,7 +9,7 @@ library(dartRverse)
 # load --------------------------------------------------------------------
 tympos1 <- gl.read.dart("./data-raw/SNPs_original.csv", 
                         ind.metafile = "./data-raw/GED2025_corr.csv")
-gl.report.monomorphs(tympos1)
+
 tym <- gl.filter.secondaries(tympos1)
 
 
@@ -19,7 +19,7 @@ seconds <- which(!tympos1@loc.names %in% tym@loc.names)
 
 table(tympos1@other$loc.metrics$clone %in% tympos1@other$loc.metrics$clone[seconds])
 
-distsec <- round(table(table(tympos1@other$loc.metrics$clone))*0.15)
+distsec <- round(table(table(tympos1@other$loc.metrics$clone))*0.12)
 clonetb <- table(tympos1@other$loc.metrics$clone)
 clonelist <- list()
 for (i in 1:5) {
@@ -27,6 +27,7 @@ for (i in 1:5) {
 }
 
 indexsec <- which(tympos1@other$loc.metrics$clone %in% unlist(clonelist))
+length(indexsec)
 # downsample loci ---------------------------------------------------------
 
 nLoc(tympos1)
@@ -47,8 +48,8 @@ index <- ifelse(is.na(index), FALSE, index)
 tw <- tympos[index,]
 index2 <- tw@other$ind.metrics$group !="Monaro"
 tw2 <- tw[index2,]
-tw2_5 <- gl.drop.ind(tw2, ind.list =  "AA61626")
-tw2_5 <- gl.drop.ind(tw2_5, ind.list =  "CK1 hatchling")
+#tw2_5 <- gl.drop.ind(tw2, ind.list =  "AA61626")
+tw2_5 <- gl.drop.ind(tw2, ind.list =  "CK1 hatchling")
 tw_final <- tw2_5
 nInd(tw_final)
 tw_final <- gl.filter.monomorphs(tw_final)
@@ -155,6 +156,7 @@ tw_final_filtered <- gl.filter.secondaries(tw_final_filtered)
 
 ## pcoa --------------------------------------------------------------------
 pop(tw_final_filtered) <- tw_final_filtered@other$ind.metrics$pop
+popNames(tw_final_filtered)
 pc <- gl.pcoa(tw_final_filtered)
 gl.pcoa.plot(pc, tw_final_filtered, yaxis = 1, xaxis = 2)
 
@@ -204,7 +206,7 @@ gl.report.maf(tw_final_filtered)
 
 loc_data <- read.csv('./data-raw/SNPs_original.csv',
                      header = F)
-table(loc_data$V2 %in% unlist(clonelist))/2
+table(loc_data$V2 %in% tw_final@other$loc.metrics$clone)/2
 ## ids are in row 7
 loc_data[1:9, 30:40]
 row6 <- loc_data[7,]
