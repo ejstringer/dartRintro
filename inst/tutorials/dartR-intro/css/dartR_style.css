@@ -192,8 +192,8 @@ pre.sourceCode {
 }
 
 pre:not([class]) {
-    background-color: #e8eae5;
-    border: 1px solid #879;
+    background-color: white;
+    border: 1px solid rgba(66, 116, 121, 0.1);
 }
 
 /*------- In line code aesthetic --------*/

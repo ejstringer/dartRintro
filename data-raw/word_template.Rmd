@@ -1,0 +1,26 @@
+---
+title: "Getting Started with dartR (ebook)" 
+author: "The dartR Team"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE,
+	collapse=TRUE
+)
+
+#necessary to render tutorial correctly
+#library(learnr) 
+#library(htmltools)
+#options(repos = BiocManager::repositories())
+library(dartR.data)
+library(dartR.base)
+library(dartR.sexlinked)
+gl.set.verbosity(3)
+
+library(dartRintro) # for tutorial data
+
+```

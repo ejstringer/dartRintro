@@ -1,0 +1,1582 @@
+---
+title: "dartR Introductory Tutorials" 
+author: "The dartR Team"
+date: | 
+    ![](images/dartR7.png){width=6cm}
+output:
+  learnr::tutorial:
+    progressive: false
+    allow_skip: true
+    theme: "cerulean"
+    highlight: "tango"
+    css: ./css/dartR_style.css
+runtime: shiny_prerendered
+description: "Introduction to dartR - using the Canberra grassland earless dragon as an example."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+
+#necessary to render tutorial correctly
+library(learnr) 
+library(htmltools)
+#options(repos = BiocManager::repositories())
+library(dartR.data)
+library(dartR.base)
+library(dartR.sexlinked)
+gl.set.verbosity(3)
+
+library(dartRintro) # for tutorial data
+
+```
+
+
+## Introduction {data-progressive=FALSE} 
+
+This is your hands on introduction to [dartR](https://github.com/green-striped-gecko/dartRverse?tab=readme-ov-file#dartrverse-). The worked examples and exercises in this tutorial correspond to the [[Intro to dartR ebook](http://dartr.biomatix.org/dartR)]{style="color:#ff0000;"}. There are also accompanying [AI podcast summaries](https://public.3.basecamp.com/p/Dp1F2egZGXY5siDf1MPFqyyg) for all the chapters, which you should definitely check out if you are more of an auditory learner.
+
+If you can't see the left sidebar, you just need to make the tutorial panel wider.
+
+### 
+
+### R code box
+
+Throughout this tutorial there will be interactive R scripts/consoles (like the one below). This is like a mini version of R running within this tutorial. But since we are already in R, you can also follow along in your own console and start writing your own code in the source panel. You could even try testing some of what you learn on your own data.
+
+But first, try running the code below (press the button that says *run code*)
+
+```{r ex, exercise=TRUE}
+# Press the Run Code button to run this code
+1+1
+```
+
+```{r ex-solution}
+# This is an example of the interactive component 
+#of this tutorial. 
+
+# Try running some code and testing out the three buttons:
+#  - Run Code, 
+#  - Start Over, 
+#  - and Solution
+
+```
+
+###
+
+Did you notice the tick that is showing before the *R code box* heading after running the code?
+
+### 
+
+It is worth noting that each R code box is independent, so code you ran in one will not be recognised by another. Don't worry though, we have done some fancy coding in the background for you to continue along, keeping track of the tasks performed before hand. 
+
+Any troubles or tribulations with coding in dartR, we have a great community that can be found on the [dartR google group](https://groups.google.com/g/dartr).
+
+### 
+
+Some of the exercises within this tutorial are specific to your working environment or Rstudio, these types of exercises will be surrounded by a green box, like the one below.
+
+::: {.my-solution icon="false"}
+It might be loading in data, or setting the working directory, or creating an R project.
+
+They need to be run in your console.
+:::
+
+### 
+
+While going through the worked examples your progress will be saved, if at any point you would like to refresh the tutorial and start over, the <small>[Start Over]{style="color:#a3a3a3; font-family:'Jaldi', sans-serif;"}</small> button is located at the very bottom of the left sidebar, below the tutorial content.
+
+### 
+
+One final note, don't forget that all aspects of the material are beneficial for learning. The ebook for being introduced to the theory and methods, the worked examples to gain experience in the application, and finally the exercises to apply everything you have learned.
+
+Alright! Let's introduce you to the data we will be using throughout these worked examples in the Next Topic. After that head back to the ebook and get ready to start working through the worked examples and exercises back here when prompted.
+
+<p>Good luck on your Pop Gen journey! 😁</p>
+
+## The data
+
+[<small>*Data modified for educational purposes*</small>]{style="color:grey"}
+
+*Tympanocryptis lineata*, the Canberra grassland earless dragon, is endemic to Australian natural temperate grasslands (Smith et al. 1999; Scott and Keogh 2000; Melville et al. 2007; Hoehn et al. 2010; Robertson et al. 2010; Stevens et al. 2010). It is fittingly named the grassland earless dragon because of its lack of external ear openings and functional tympanum (Robertson et al. 2010). Canberra grassland earless dragons, hereafter also referred to as dragons, are a foraging species consuming a diet of predominantly ants and other invertebrates. They use a sit-and-wait approach to predate on their prey (McGrath et al. 2014). Their movement is typically no greater than 100 metres every six weeks, with localised home ranges between 925m2 and 4668m2 (Stevens et al. 2010; Hoehn et al. 2013; McGrath et al. 2014). There are only a few remaining fragmented populations found in and around Canberra (Stevens et al. 2010; Nelson and Cooper 2017).  
+
+![](images/ged.png){.class height="450"}
+
+Nationally it is classed as endangered under the Environmental Protection and Biodiversity Conservation Act 1999 (ACT Government 2017). Monitoring of this species in the ACT began in Northern Canberra in 2002 and Western Canberra in 2006. A rapid decline in capture numbers for both populations was detected somewhere between 2004 and 2006 (Dimond et al. 2012; Hoehn et al. 2013) and more generally across several sites in the Canberra region from 1995 to 2009. The dragons have continued to decline raising conservation concern.
+
+Genetic samples have been collected since 2006 and now is a good time to assess the status of the remaining populations. Given the low number of individuals remaining in the wild, managements main concern is whether the dragons are losing genetic diversity. You have been tasked in providing the management team with an assessment of the genetic status of the species. 
+
+
+```{r echo=FALSE}
+#devtools::install_github("r-spatial/mapview")
+#gl.map.interactive(tympo.gl)
+
+library(leaflet)
+
+m<-leaflet() %>% addCircles(lng = tympo.gl@other$latlon$lon,
+                         lat = tympo.gl@other$latlon$lat,
+                         color = c('red', 'blue','green', 'white', 'yellow')[as.numeric(tympo.gl@pop)]) %>% 
+  addTiles(urlTemplate = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+ m 
+```
+
+The following worked examples will walk you through the process of analysing genetic data to be able to answer whether or not the genetic diversity is decreasing in this critically endangered small agamid lizard. 
+
+To coincide with the *Introduction to dartR: A Practical Guide* ebook, the worked examples have been broken up into steps:
+
+1. Getting setup in RStudio
+
+2. Coding in R - individual metrics
+
+3. Genetic data structure and input
+
+4. Genetic data manipulation
+
+5. Basic filtering
+
+6. Simple visualisation
+
+
+## Worked Ex 1-1: Getting organised
+###
+
+A good first step on any data analysis journey is to get a little organised. RStudio's projects are a great way to do that. Let's create a project for our grassland earless dragon analysis (we will use the same project for all the worked examples).
+
+### Create RStudio project
+
+You can create a project in six easy steps (see fig below):
+
+  1. Navigate to the [File]{style="color:#a3a3a3; font-family:'Arial'"} tab at the top of RStudio and select [New Project...]{style="color:#a3a3a3; font-family:'Arial'"} 
+  
+  2. Select **New Directory**
+  
+  3. Then select [New Project]{style="color:#a3a3a3; font-family:'Arial'"} at the top of the list
+  
+  4. The next step is to name your project (i.e. folder name - how about *dartR_tympos*)
+  
+  5. Then choose a location on your computer where you want to save your project ([Browse...]{style="color:#a3a3a3; font-family:'Arial'"} for easy navigation)
+  
+  6. Finally, all you need to do is press **Create Project**
+  
+  
+![](images/project.png){.class height="750"}
+
+### Folder structure
+
+The next way to get organised is to have a good folder system, this is the folder system I recommend. 
+
+- code (r scripts)
+
+- data (raw data - READ ONLY)
+
+- figures (figures created)
+
+- output (data created)
+
+You might have additional folders but these are a good start.
+
+you can run the below code to generate the folders 
+
+```{r eval=FALSE}
+lapply(c('code', 'data', 'figures', 'output'), dir.create)
+```
+
+### Organising scripts
+
+A nice aspect of R scripts in RStudio is that there is a way to create sections when writing code, similar to Microsoft Word headings. First open a new file: [File | New File | R Script]{style="color:#a3a3a3; font-family:'Arial'"}  
+
+To define a heading you use hash symbols (# = level 1 heading, ## = level 2 heading, etc...) followed by the heading name and then at least four dashes. 
+
+Here is an example of what it would look like
+
+```{r}
+# Heading 1 ------------------
+
+## heading 2 ----
+
+### heading 3 ----
+```
+
+You can also use ctrl + Shift + R as a shortcut to define level 1 headings.
+
+What is nice is that then if you click on the outline at the top-right of your R script (indicated by the red arrow in the figure below) it will show you the headings in your script and you can also use it to navigate to different parts of your code by clicking on the headings in the outline.
+
+![](images/outline.png)
+
+These are all just ways to help you keep organised. Apply them as you see fit. 
+
+Now lets get into some actual coding!
+
+## Worked Ex 2-1: Data types
+
+The first step is to get an overview of our samples. To do this lets use the dragon's individual metrics data. But before jumping in, let's get a bit of an overview of how R works.
+
+R works with objects, that is, with self-contained entities that have defined attributes. The advantage of objects is that when you use one in calculations, R knows what it is and how to handle it in the calculation.
+
+When you create an object in R, attributes are assigned to it by default. The decision is made behind the scenes. 
+
+### Scalars (contains a single value)
+
+Let's define our first R object, we want to keep track of the species name we are working with. Fill in the species name (...) below and then check the class of your new R object by typing in `species` into the brackets (...). If you are unsure you can click the solutions tab
+
+```{r extwo1, exercise=TRUE}
+species <- '...'
+species
+class(...)
+```
+
+```{r extwo1-solution}
+species <- 'Tympanocryptis lineata'
+species
+class(species)
+```
+
+Next, we want to define the year when we started collecting tissue samples. Fill in the code similar to above, but in R numbers do not need quotation marks ('').
+
+```{r extwo2, exercise=TRUE}
+year <- ... ## Change to populations!!!
+year
+class(...)
+```
+
+```{r extwo2-solution}
+year <- 2006 ## Change to populations!!!
+year
+class(year)
+```
+
+You should see that R has automatically assigned the species name as a character and the first sampling year as numeric. Let's keep track of one more piece of information that is recognised by R in a distinct way. Indicate below if the dragon is classed as endangered using either `TRUE` or `FALSE`. Then check the class of this new R object.
+
+```{r extwo3, exercise=TRUE}
+endangered <- ...
+endangered
+class(...)
+```
+
+```{r extwo3-solution}
+endangered <- TRUE
+endangered
+class(endangered)
+```
+
+As you should be able to see, this is a logical variable. This is a key part of coding and will come up a lot when manipulating data.
+
+
+### Vectors (containing ordered set of values of the same type)
+
+Now let's define another type of R object, that can include more than a single value, to keep track of the first five dragons captured. We will need three vectors, the first containing their ids (AA1-AA5), second their age (J, J, SA, A, SA), and third their snout-vent-length in mm (36,33,38,66,45). We use `c()` to define vectors. Fill in the code below with the information provided for the five dragons. Don't forget to include quotations around anything that is not a number. 
+
+When you assign values there is no output, so if you want to see the results of what you have created don't forget to put the name of your R object on a new line, like we have done below.
+
+
+```{r extwo4, exercise=TRUE}
+ids <- c(...)
+age <- c(...)
+svl <- c(...)
+ids
+age
+svl
+```
+
+```{r extwo4-solution}
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+age <- c('J', 'J', 'SA', 'A', 'SA')
+svl <- c(36, 33, 38, 66, 45)
+```
+
+Vectors can be subset using square brackets `[]`. Let's first just look at our adult dragon's length. It is the fourth dragon in our vector list so we would place 4 within the brackets. We can even remove the adult in the same fashion, just by adding a minus symbol, -4. 
+
+```{r extwo5, exercise=TRUE}
+svl <- c(36, 33, 38, 66, 45)
+svl[...]
+```
+
+```{r extwo5-solution}
+svl <- c(36, 33, 38, 66, 45)
+svl[4]
+svl[-4]
+```
+
+Another useful coding convention is the colon `:`, we can use it to access the juvenile lengths, the first two dragons in our list. The colon is a way to easily create a sequential string of numbers. How about also trying to subset just the last three dragons as well, the non-juveniles. 
+
+```{r extwo6, exercise=TRUE}
+svl <- c(36, 33, 38, 66, 45)
+svl[...:...] #Juveniles
+svl[...:...] #adults and sub-adults
+```
+
+```{r extwo6-solution}
+svl <- c(36, 33, 38, 66, 45)
+svl[1:2] #Juveniles
+svl[3:5] #adults and sub-adults
+```
+
+What about only sub-adults. For them we would need to define positions 3 and 5 using `c()` within the square brackets. Another way to access parts of a vector are using conditional statements. Conditional statements produce logical outputs. Let's try the *equals* (`==`) condition for sub-adults as well and see that it has the same result as defining our sub-adults using `c()`. 
+
+```{r extwo7, exercise=TRUE}
+age <- c('J', 'J', 'SA', 'A', 'SA')
+svl <- c(36, 33, 38, 66, 45)
+svl[...] # c()
+svl[age == 'SA'] # conditional statement
+```
+
+```{r extwo7-solution}
+svl[c(3,5)] # c() or -c()
+svl[age == 'SA'] # conditional statement (or change !=)
+```
+
+The opposite to the *equals* condition is the *not equals* (`!=`), similar to adding the minus sign in front of `c()`. Why not give it a try by adjusting the code above, again expecting the same output for both `-c()` and `!=` statements. 
+
+You should by now have the gist. A vector is a data structure that holds an ordered set of numbers, each of which can be addressed by its position in the ordered set, or by applying some logical condition, using square brackets.
+
+
+### Factors
+
+Factors are special types of vectors whose values have labels associated with them. For example, we might create a character vector containing a combined sex and maturity code for the first five dragons caught (J, J, M, M, F).
+
+Converting a vector to a factor causes the values, in alphabetical order, to be assigned numbers, and those numbers to be assigned labels. 
+
+A subtle difference to be sure. The numbers are hidden behind the scenes, and re-caste with their character values by R when they are printed out. That they are stored as numbers is evident when we print the object sexcode out without reference to its class using `unclass()`.
+
+```{r extwo8, exercise=TRUE}
+sexcode <- c(...)
+sexcode <- factor(sexcode)
+sexcode
+unclass(sexcode)
+```
+
+```{r extwo8-solution}
+sexcode <- c('J','J','M','M','F')
+```
+
+::: {.my-callout}
+
+For a more detailed account of working with vectors in R, refer to the [AI summary on vectors](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Vectors.htm). 
+
+:::
+
+
+### Dataframes
+
+Dataframes are a central plank of data structures in R. Data frames organize data in rows and columns, just like Excel spreadsheets. Each row typically represents one entity and each column typically represents an attribute for that entity.
+Dataframes can have different data types in different columns. You might have names as text in one column, weights as numbers in another, and test results as TRUE/FALSE values in a third column.
+
+Let's combine all the individual metrics for our five dragons into one dataframe. Let's also add a column to indicate that the dragons have been genotypes by defining a new scalar called `genotyped` as `TRUE` and including that in our dataframe.
+
+```{r extwodf1, exercise=TRUE}
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+age <- c('J', 'J', 'SA', 'A', 'SA')
+svl <- c(36, 33, 38, 66, 45)
+genotyped <- ...
+
+metrics <- data.frame(ids, ..., ..., ...)
+metrics
+```
+
+```{r extwodf1-solution}
+genotyped <- TRUE
+metrics <- data.frame(ids, age, svl, genotyped)
+
+```
+
+DataFrame columns can be accessed as vectors using the `$` operator.
+
+Let's check the svl of our five individuals
+
+```{r meta}
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+age <- c('J', 'J', 'SA', 'A', 'SA')
+svl <- c(36, 33, 38, 66, 45)
+genotyped <- TRUE
+
+metrics <- data.frame(ids, age, svl, genotyped)
+
+```
+
+
+```{r extwodf2, exercise=TRUE, exercise.setup = "meta"}
+metrics$...
+
+```
+
+```{r extwodf2-solution}
+metrics$svl
+```
+
+The object df$svl is a vector, and all the usual operators for vectors apply. For example let's calculate the svl in centimeters instead of millimeters by dividing (`/`) svl by 10.
+
+```{r extwodf3, exercise=TRUE, exercise.setup = "meta"}
+
+```
+
+```{r extwodf3-solution}
+metrics$svl/10
+```
+
+Let's now add it as a new column to our dataframe. The simplest way to add a new variable to an existing dataframe is to use assignment `<-` with a new column name not already in the dataframe.
+
+```{r extwodf4, exercise=TRUE, exercise.setup = "meta"}
+metrics$svlcm <- ...
+metrics
+
+```
+
+```{r extwodf4-solution}
+metrics$svlcm <- metrics$svl/10
+metrics
+```
+
+The length of the vector needs to be the same as the number of rows in the dataframe.
+
+::: {.my-callout}
+
+For a more detailed account of working with dataframes in R, refer to the [AI summary on dataframes](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Data_Frames.htm). 
+
+:::
+
+
+### Matricies (two-dimensional array - all elements the same data type)
+
+The next bit of information we want to record for our five dragons is some genetic data. A matrix is a good object type to store genetic data in, where the rows are the individuals and columns store the information for distinct genetic markers. Let's record information for three genetic markers. 
+
+SNP1: A/A, A/G, A/G, A/A, A/A
+
+SNP2: C/G, G/G, G/G, C/G, G/G
+
+SNP3: T/G, T/T, G/G, NA, T/T
+
+Each marker has five values for each of the five dragons except for SNP3 which has a missing value for dragon four, denoted with NA.
+
+Let's first make an empty matrix. Fill in the correct number of rows and columns we will need for our matrix.
+
+```{r extwo9, exercise=TRUE}
+genotypes <- matrix(data = NA, nrow = ..., ncol = ...)
+genotypes
+```
+
+```{r extwo9-solution}
+genotypes <- matrix(data = NA, nrow = 5, ncol = 3)
+genotypes
+```
+
+Let's now label the rows and columns to remind ourselves of what they are. We should label our rownames with the dragon ids and the columns with SNP1, SNP2, and SNP3.
+
+```{r extwo10, exercise=TRUE}
+genotypes <- matrix(data = NA, nrow = 5, ncol = 3)
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+rownames(genotypes) <- ...
+colnames(genotypes) <- ...
+genotypes
+```
+
+```{r extwo10-solution}
+genotypes <- matrix(data = NA, nrow = 5, ncol = 3)
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+rownames(genotypes) <- ids
+colnames(genotypes) <- c('SNP1', 'SNP2', 'SNP3')
+genotypes
+```
+
+Now we want to add in the genetic information as listed above. We can do this by subseting to columns to input the information for each SNP separately. Accessing a matrix using `[]` is similar to accessing a vector but because the matrix is two dimensional to distinguish between rows and columns we separate them using a comma `[rows,columns]`. In R `NA`, when it signifies missing data, does not need quotations. 
+
+```{r geno}
+genotypes <- matrix(data = NA, nrow = 5, ncol = 3)
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+rownames(genotypes) <- ids
+colnames(genotypes) <- c('SNP1', 'SNP2', 'SNP3')
+
+```
+
+
+```{r extwo11, exercise=TRUE, exercise.setup = "geno"}
+genotypes[,...] <- c(...) # SNP1
+genotypes[,...] <- c(...) # SNP2
+genotypes[,...] <- c(...) # SNP3
+genotypes
+
+```
+
+```{r extwo11-solution}
+genotypes[,1] <- c('A/A', 'A/G', 'A/G', 'A/A', 'A/A')
+genotypes[,2] <- c('C/G', 'G/G', 'G/G', 'C/G', 'G/G')
+genotypes[,3] <- c('T/G', 'T/T', 'G/G', NA, 'T/T')
+
+```
+
+We coded our genotypes using characters, but often times genetic data are coded numerically. You can learn all about that in chapter 3 of the [[Intro to dartR ebook](http://dartr.biomatix.org/dartR)]{style="color:#ff0000;"}.
+
+::: {.my-callout}
+
+For a more detailed account of working with matrices in R, refer to the [AI summary on matrices](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Matrices.htm) and the [AI summary on arrays](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Arrays.htm). 
+
+:::
+
+
+### Lists
+
+Now it is time to put all our data together. This is not a necessary step but learning about lists can be pretty handy. 
+
+A list is R's most flexible data structure – it is an object that itself can hold a set different types of objects (vectors, matrices, data frames, even other lists) all together. Unlike vectors, matrices, or data frames that require elements to be the same type or have the same structure, lists can contain completely different kinds of objects with completely different types of data.
+
+The elements of a list are in a specific order and position, for easy reference. The elements can be named or un-named. Lists can contain other lists among their elements. The elements of a list do not have to be the same size.
+
+Let's add all the information we have been collecting together and take a look at the output.
+
+
+```{r list}
+
+species <- 'Tympanocryptis lineata'
+year <- 2006
+endangered <- TRUE
+
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+age <- c('J', 'J', 'SA', 'A', 'SA')
+svl <- c(36, 33, 38, 66, 45)
+genotyped <- TRUE
+
+metrics <- data.frame(ids, age, svl, genotyped)
+
+genotypes <- matrix(data = NA, nrow = 5, ncol = 3)
+rownames(genotypes) <- ids
+colnames(genotypes) <- c('SNP1', 'SNP2', 'SNP3')
+
+genotypes[,1] <- c('A/A', 'A/G', 'A/G', 'A/A', 'A/A')
+genotypes[,2] <- c('C/G', 'G/G', 'G/G', 'C/G', 'G/G')
+genotypes[,3] <- c('T/G', 'T/T', 'G/G', NA, 'T/T')
+
+```
+
+
+```{r extwo12, exercise=TRUE, exercise.setup = "list"}
+tympo_data <- list(species, year, endangered, 
+                   metrics, 
+                   genotypes)
+tympo_data
+
+```
+
+
+This is an unnamed list, distinguishing each element by double square brackets with the position number of the element in the list `[[#]]`. We can create a named list by adding a name followed by `=` followed by our data within `list()` or by assigning names after creating the unnamed list using `names()`.
+
+
+```{r extwo13, exercise=TRUE, exercise.setup = "list"}
+tympo_data <- list(sp = species, 
+                   yr = ..., 
+                   endangered= ..., 
+                   indmetrics = ..., 
+                   genotypes = ...)
+tympo_data
+```
+
+```{r extwo13-solution}
+tympo_data <- list(sp = species, 
+                   yr = year, 
+                   endangered= endangered, 
+                   indmetrics = metrics, 
+                   genotypes = genotypes)
+tympo_data
+```
+
+Now you should be able to see that each element is distinguished by `$element_name`. You can access elements in a named list similar to the way you access columns in a dataframe using `$`.
+
+::: {.my-callout}
+
+For a more detailed account of working with lists in R, refer to the [AI summary on lists](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Lists.htm). 
+
+:::
+
+## Worked Ex 2-2: Save and tidy
+
+
+### Saving files
+
+Sometimes you want to save your data for use in another R session or in other software. 
+
+To save our dataframe we can use `write.csv()` for our list we will have to save it as an R object, we can use `saveRDS()` for this.
+
+::: { .my-solution}
+
+You can copy and paste the below code into a new R script to save the data we have created.
+
+```{r eval = FALSE}
+species <- 'Tympanocryptis lineata'
+year <- 2006
+endangered <- TRUE
+
+ids <- c('AA1', 'AA2', 'AA3', 'AA4', 'AA5')
+age <- c('J', 'J', 'SA', 'A', 'SA')
+svl <- c(36, 33, 38, 66, 45)
+genotyped <- TRUE
+
+metrics <- data.frame(ids, age, svl, genotyped)
+
+genotypes <- matrix(data = NA, nrow = 5, ncol = 3)
+rownames(genotypes) <- ids
+colnames(genotypes) <- c('SNP1', 'SNP2', 'SNP3')
+
+genotypes[,1] <- c('A/A', 'A/G', 'A/G', 'A/A', 'A/A')
+genotypes[,2] <- c('C/G', 'G/G', 'G/G', 'C/G', 'G/G')
+genotypes[,3] <- c('T/G', 'T/T', 'G/G', NA, 'T/T')
+
+tympo_data <- list(species, year, endangered, 
+                   metrics, 
+                   genotypes)
+# save list
+saveRDS(tympo_data, './output/workedex2_list.rds')
+
+# save metrics dataframe
+
+write.csv(metrics, './output/metrics.csv')
+
+```
+
+:::
+
+Because these are data created in R we would save them in the **output** folder. It is always good to keep the associated R script that creates the data. So, don't forget to save your new R script into your **code** folder. ctrl/cmd + S is the short cut to save a file or select File in the top left of your RStudio and navigate to Save or Save As...
+
+### Tidying workspace
+
+Since we have saved our list of data we probably won't need it again. So, let's remove it from our *Environmnet*. We can do this using `rm()`. 
+
+::: { .my-solution}
+
+Simply type the name into the brackets of the R object you want to delete.
+
+```{r eval = FALSE}
+rm(tympo_data)
+```
+
+:::
+
+But maybe we want a complete fresh start. We can remove all data created during our R session by navigating to the *Environment* pane and clicking on the little broom icon 🧹. 
+
+
+::: { .my-solution}
+
+Select the broom icon, you will then be prompted with a pop up box, just select *yes* if you are sure you want a fresh start. 
+
+:::
+
+This removes everything from our environment making it out as if we have started a whole new R session. 
+
+
+## Worked Ex 2-3: Inputing data
+
+In the previous worked example we were doing a lot of data entry. This is very uncommon in R programming, usually you would already have data stored somewhere and you would simply input the data and then start manipulating and analysing it. So let's do that now. 
+
+Data can come in many formats but one of the most common is as a csv (comma separated values) file. R has an easy way of reading these into your R session, `read.csv()`. Let's use it to read in the individual metrics file `Tympo_metadata.csv`. 
+
+First we need to determine where the file is located locally. Because the metadata is stored as part of the dartR.data package we can get the file location using the following code:
+
+
+```{r extwo14, exercise=TRUE}
+system.file(package = 'dartRintro', 'extdata', 'Tympo_metadata.csv')
+
+```
+
+Now we just need to insert the file location into the `read.csv()` function and assign it a name. Then we can view it.
+
+```{r extwo15, exercise=TRUE}
+filelocation <- ...
+metrics <- read.csv(...)
+metrics
+```
+
+```{r extwo15-solution}
+filelocation <- system.file(package = 'dartRintro', 'extdata', 'Tympo_metadata.csv')
+metrics <- read.csv(filelocation)
+metrics
+```
+
+
+If you want to save `metrics` you can do so by using `write.csv()`. But first we need to define where it will go. If you are working within your own console your R session should be pointing to the location of your R project (you would have created an R project during Ex 1-1.). But within this tutorial it is pointing to a temporary drive which can be pretty tricky to find. 
+
+
+::: {.my-callout}
+
+There are other functions for loading in different types of data you can check out in the AI summary. 
+
+:::
+
+
+## Worked Ex 2-3: Functions
+
+You may have realized that most of the commands used in R are functions of one sort or another. Functions in R are not functions in the mathematical sense, but rather are the equivalent to subroutines or subprograms in other languages. 
+
+A function is a discrete block of code that takes data, manipulates it and returns the results of those manipulations. For example, the function sort() can be used to re-order a data vector. Let's try it with svl we defined earlier, first view the data without sorting then with the sort function.
+
+
+```{r extwo17, exercise=TRUE}
+svl <- c(36, 33, 38, 66, 45)
+...
+sort(...)
+```
+
+```{r extwo17-solution}
+svl <- c(36, 33, 38, 66, 45)
+svl
+sort(svl)
+```
+
+Functions are at the essence of coding and we will be introducing you to dartR specific functions in the chapters ahead. There is a lot more you can learn about functions, this is just the beginning.
+
+::: {.my-solution}
+
+If you want information about a function you can simply type the function name including empty round brackets with a question mark before it, `?sort()`.
+
+:::
+
+::: {.my-callout}
+
+For a more detailed account of working with functions in R, refer to the [AI summary on functions](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/AI_Guide_to_R_Functions.htm). 
+
+:::
+
+
+## Worked Ex 3-1: Load and save
+
+It is time to start working in the dartRverse! Welcome!
+
+Let's start with an overview of the data, for further details check out [The data]{style="color:#cc9900"} tab in the left sidebar. 
+
+You have been tasked in providing the management team with an assessment of the genetic status of the species. Given the low number of individuals remaining in the wild, managements main concern is whether the dragons are losing genetic diversity. **But before we can get into a genetic assessment of the species, there are a number of important steps to go through before hand**.
+
+### Working directory
+
+A first step is to make sure you have set your working directory. If you are in a project the working directory should be the folder location of your project. 
+
+::: {.my-solution icon="false"}
+If you haven't already, create a project using the RStudio menu (File - New Project). Refer to Worked Ex 1-1 for details. Your project will become the default directory for files.
+
+You can change the directory by using The RStudio menu (Session - Set Working Directory). Alternatively use `setwd()`
+:::
+
+### 
+
+Once you have your working directory setup it is a good idea to open an R script file (File - New File - R Script or use shortcut keys ctrl/cmd + shift + N) to write your code, instead of straight to the console.
+
+::: {.my-solution icon="false"}
+Then you need to load in **dartRverse** using the `library()` function
+
+```{r eval = FALSE}
+library(dartRverse)
+```
+
+:::
+
+### 
+
+By loading in the **dartRverse** package it should automatically load in **dartR.base** and **dartR.data**. These are packages we need for this tutorial.
+
+::: {.my-solution icon="false"}
+Set the global verbosity level to 3 to provided detailed diagnostics, add `gl.set.verbosity(3)` to your R script.
+
+:::
+
+### Download raw data
+
+Now to the Canberra grassland earless dragon genetic data. Let's start by downloading the SNP data and associated metadata and saving them in a folder called **data**. 
+
+- *link to SNP file* or run code below. This is the set of SNP data for CGEDs, in 2-row format as would be supplied by [Diversity Arrays Technology Pty Ltd](https://www.diversityarrays.com).
+
+```{r eval = FALSE}
+write.csv(system.file("extdata",
+                      "",
+                      package = "dartRintro"),
+          './data/Report_DTym25-13579_10_moreOrders_SNP_1.csv')
+```
+
+
+- *link to metadata file* or run code below. Recall that the individual metadata comprise attributes assigned to each individual.
+
+```{r eval = FALSE}
+write.csv(system.file("extdata",
+                      "Tympo_metadata.csv", 
+                      package = "dartRintro"),
+          './data/Tympo_metadata.csv')
+```
+
+### Read the data into dartR
+
+::: {.my-solution icon="false"}
+Read the data from [Report_DTym25-13579_10_moreOrders_SNP_1.csv]{style="color:blue; font-family: 'Courier New';"} into a dartR object and assign the individual metrics using `gl.read.dart()`
+
+Name your dartR object `gl`
+
+```{r, eval = FALSE}
+
+snpfile <- "./data/Report_DTym25-13579_10_moreOrders_SNP_1.csv"
+gl <- gl.read.dart(filename=snpfile,
+                         ind.metafile="./data/Tympo_metadata.csv")
+```
+
+:::
+
+
+This is the output you should see when reading in the data.
+
+```{r datainput, echo = FALSE, cache=TRUE}
+gl <- gl.read.dart(filename=system.file("extdata", "Report_DTym25-13579_10_moreOrders_SNP_1.csv", package = "dartRintro"),
+                   ind.metafile=system.file("extdata", "Tympo_metadata.csv", package = "dartRintro"))
+```
+
+Well done, you should have now successfully read in the dragons genetic data, ready to interrogate.
+
+### Save as .rds
+
+save
+
+
+## Worked Ex 3-2: dartR object
+
+Let's examine the contents of the Tympo dartR object.
+
+### 
+
+Just before we do, lets do a quick refresher of what a dartR object actually is, of course if you want more background check out the [ebook chapter](http://dartr.biomatix.org/dartR) associated with this tutorial.
+
+### 
+
+If you are familiar with genlight objects, a dartR object is effectively a version of a genlight object that is specific to the dartR package suite. A genlight object is a data structure used to efficiently store and analyse large genetic marker data. It includes the allelic state for each SNP called and for every individual genotyped.
+
+### 
+
+Additionally it also includes the metadata associated with the individuals genotyped and the SNP loci called. That's a lot of information! So lets learn how to interrogate our dartR object.
+
+### Data overview
+
+First let's confirm our `gl` is a dartR object using `class()`. Then to examine `gl` we simply need to run it on a new line and it will provide information about our data. 
+
+```{r gl}
+gl <- tympo.gl
+
+```
+
+
+```{r exthree1, exercise=TRUE, exercise.setup = "gl"}
+class(...)
+gl
+
+```
+
+```{r exthree1-solution}
+class(gl)
+gl
+```
+
+Another useful way to get an overview of our data is the basic report function,
+`gl.report.basics()`. Within the function you can include the argument `verbose =` and set it as either 0, 1, 2, or 3, depending on the detail of output you want. Setting verbose to 0 will result in no output. 
+
+
+```{r exthree2, exercise=TRUE, exercise.setup = "gl"}
+gl.report.basics(...)
+
+```
+
+```{r exthree2-solution}
+gl.report.basics(gl, verbose = 1)
+
+```
+
+
+## Worked Ex 3-3: Ind metrics
+
+Let's get familar with some of the most important components to our data. First, we want to check how many individuals were genotyped and then how many per population. We can check the number of individuals with `nInd()` and the number of populations with `nPop()`.
+
+```{r exthree3, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree3-solution}
+nInd(gl)
+nPop(gl)
+
+```
+
+That's interesting, if we look at the map under [The data]{style="color:#cc9900"} tab it shows only four populations. Let's check what the population names are using `popNames()` to try and figure out what is going on.
+
+```{r exthree4, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree4-solution}
+popNames(gl)
+
+```
+
+
+Ok, that makes more sense, we have a population called Unknown, so not an actual population. Let's check how many individuals are in this *unknown* population. we can do this using `pop()`, to list all the individuals populations, within `table()` that counts the number of values. You can check the output of `pop()` first if you are interested.
+
+```{r exthree5a, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree5a-solution}
+table(pop(gl))
+
+```
+
+Well that's good to know, it is just the one individual with an unknown population. Let's do a bit of fancy coding to figure out its id. we can use the function `indNames()` and square brackets with a conditional statement where `pop(gl) == 'Unknown'`. Give it ago below.
+
+```{r exthree5, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree5-solution}
+indNames(gl)[pop(gl) == 'Unknown']
+
+```
+
+Alright, not super informative, what about we get more information from the individual data about our unknown individual. 
+
+dartR objects store individual metadata that can seem a little hard to access. But don't worry it's easier than it looks, all you need to know is the metadata's *address*. The individual metadata lives at `gl@other$ind.metrics`.
+
+Let's first check the names of our columns in the metadata using `names()`. Another useful function for a quick overview of a dataframe is `head()` which shows you the column names and the first six entries. 
+
+```{r exthree6, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree6-solution}
+names(gl@other$ind.metrics)
+head(gl@other$ind.metrics)
+
+```
+
+We have quite a lot of information for our dragons. Importantly we have latitudes and longitudes if we want to do any distance based analyses and we also have sex for detecting sex linkage, which will come later.   
+
+Great now lets check the info about our unknown individual. We can use the same condition as we did before but now the square brackets come after the `gl@other$ind.metrics` and need a comma to distinguish between rows and columns, remember `[rows, column]`.
+
+```{r exthree7, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree7-solution}
+gl@other$ind.metrics[pop(gl) == 'Unknown',]
+
+```
+
+All we know is that it is a Canberra grassland earless dragon. 
+
+Alright, I think it is time to check out some of the genetic data.
+
+## Worked Ex 3-4: Loc metrics
+
+Let's start by undertaking some basic diagnostics. First let's find out how many loci are in our dataset, using `nLoc()`.
+
+```{r exthree8, exercise=TRUE, exercise.setup = "gl"}
+
+```
+
+```{r exthree8-solution}
+nLoc(gl)
+```
+
+Ok well that seems like an low number of SNPs. I am more used to seeing SNPs in the tens of thousands, maybe someone has tampered with the data, or maybe forgot to provide the another data file with more SNPs. DArT usually sends two or even three files if there are more than 50,000 SNPs. Let's leave it for now and see what we can do with the SNPs we have.
+
+To get a better understanding of how the SNP data is stored, first read chapter three of the ebook but then, we can us `as.matrix` to see the actual state of the SNPs for each individual. To make it a little easier to visualize lets look at a subset of individuals and SNPs, we use square brackets for this, `[individuals, SNPs]`.
+
+Let's display the genotypes for the first 3 individuals and the first 6 loci. After running the below code, try showing the first 5 individuals and first 10 loci.
+
+```{r exthree9, exercise=TRUE, exercise.setup = "gl"}
+as.matrix(gl)[1:3,1:6]
+
+```
+
+```{r exthree9-solution}
+as.matrix(gl)[1:5,1:10]
+
+```
+
+Well I am glad we could look at more individuals and loci, there is not much variation in the first three individuals and first six loci, they are either coded as 0, which indicates a homozygote for the reference allele, or NA for missing. 
+
+When we look at more loci, we can see that loci ten has way more diversity, with homozygotes for both the reference (0) and alternative (2) alleles as well as a couple of homozygotes (1).
+
+There seems to be a lot more missing data in the first five loci then the next five. We can actually check this by looking at the loc metrics.
+
+The locus metadata included in the dartR object are those provided as part of your Diversity Arrays Technology report. These metadata are obtained from the Diversity Arrays Technology [csv]{style="color:blue; font-family: 'Courier New';"} file when it is read in to the genlight object using `gl.read.dart()`. The locus metadata are held in an R data.frame that is associated with the SNP data as part of the dartR object.
+
+The loc metrics are similarly located as the ind metrics, `gl@other$loc.metrics`. Let's first look at the names of the loc metrics using `names()`.
+
+```{r exthree10, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree10-solution}
+names(gl@other$loc.metrics)
+
+```
+
+There is quite a bit of information in there. We are interested in the `CallRate` column for the first ten loci. We can access columns just like with any other dataframe using `$`. We can then use `[]` to subset the first 1:10 loci. If you want you could show the first 1:5 then 6:10.
+
+```{r exthree11, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree11-solution}
+gl@other$loc.metrics$CallRate[1:5]
+gl@other$loc.metrics$CallRate[6:10]
+
+```
+
+Do you think the first loci have more missing data?
+
+Instead of just looking at the first ten, why don't we do a histogram of all our loci's missing data rate, i.e., call rate. Instead of subsetting let's use the `hist()` on the `CallRate` instead.
+
+```{r exthree12, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree12-solution}
+hist(gl@other$loc.metrics$CallRate)
+
+```
+
+Great work! You really must be getting to know the data by now.
+
+## Worked Ex 4-1: Manipulate
+
+Well we are really getting a sense of the data. But we decide, given how we don't know the origin of the one sample, to remove the unknown sample from our data. We can actually do this in two ways, because we are just removing one individual that is uniquely asorted into it's own unknown population, we can use `gl.drop.ind()` or `gl.drop.pop()`. Both these functions contain similar arguments, `pop.list =` or `ind.list =`, for specifying which individual or population you would like to drop. In a previouse example we identified the individual id as **AA24617**. Try using `gl.drop.ind()` or `gl.drop.pop()` to remove the unknown individual, and save the new dartR object as `glknown` instead of `gl`.
+
+```{r exthree13, exercise=TRUE, exercise.setup = "gl"}
+
+
+```
+
+```{r exthree13-solution}
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+```
+
+Great know lets continue on using the `glknown`. 
+
+```{r gl2}
+gl <- tympo.gl
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+
+```
+
+### Management additional information
+
+You recieve additionaly information from management. They tell you that the Tuggeranong population is actually more accurately referred to as the Bonython population and that Googon and Royalla are considered the one connected population and usually referred to as the South Canberra population.
+
+You go ahead and make the changes they recommend. To rename a population you can use `gl.rename.pop()`. Use `popNames()` to check that the renaming was successful.
+
+
+```{r exthree14, exercise=TRUE, exercise.setup = "gl2"}
+glknown2 <- gl.rename.pop(glknown, old = '...', new = '...')
+
+```
+
+```{r exthree14-solution}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+popNames(glrename)
+
+```
+
+Great! It is worth noting that the pop names have changed but the ind.metrics have stayed the same, they still hold the old naming convention, Tuggeranong. Feel free to check it above.
+
+Additionally to renaming, let's try merging our two populations using `gl.merge.pop()`. Use `popNames()` to check again.
+
+```{r exthree15, exercise=TRUE, exercise.setup = "gl2"}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+gl3pops <- gl.merge.pop(glrename, old = c(...), new = '...')
+
+```
+
+```{r exthree15-solution}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+gl3pops <- gl.merge.pop(glrename, old = c('Googong', 'Royalla'), new = 'South Canberra')
+popNames(gl3pops)
+
+```
+
+Even though you have merged the population, you consider the recommendation uniformed, there has been no research on the dispersal between these sampling locations. They could make up one connected population or maybe the they could act as two isolated populations. You decide to leave them as four populations for now, until you get a chance to assess them genetically. 
+
+What you are really interested in is the yearly sampling. So you decide to reassign population to year sampled using `gl.reassign.pop()`. Check that the change was executed and the sample sizes in each year, remeber you can use the function `pop()` and `table()`  to acheive this.
+
+```{r exthree16, exercise=TRUE, exercise.setup = "gl2"}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+glyear <- gl.reassign.pop(..., as.pop = '...')
+
+```
+
+```{r exthree16-solution}
+glrename <- gl.rename.pop(glknown, old = 'Tuggeranong', new = 'Bonython')
+glyear <- gl.reassign.pop(glrename, as.pop = 'year')
+table(pop(glyear))
+
+```
+
+### History
+
+R objects keep a history check out the different histories of `gl`
+and `glyear`, which was derived from `gl`. This can be useful as often times there are a lot of steps in preparing genetic data for downstream analyses. The history is located at `gl@other$history`.
+
+```{r exthree17, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exthree17-solution}
+gl@other$history
+glyear@other$history
+```
+
+## Worked Ex 4-3: Report
+
+We have been manipulating our dartR object based on individual metrics, now it is time to get our SNPs ready for analysis. We will use the report functions. In each case, think about what threshold you might define to discard loci or individuals with poor quality (quality control).
+
+dartR has a large number of report functions (and associated filter functions to be introduced in the next example). We will go through some of the main ones. Just remember there is a lot of nuance when it comes to filtering.  
+
+**Important Note**: Do not assign the output of the report function to your genlight object or you will overwrite your genlight object.
+
+Let's start with with a reminder of the different report functions introduced in the ebook. don't forget you can use `?gl.report.function`, replacing gl.report.function with the name of the report function you are interested in, to open the help file for more details.
+
+```{r eval = FALSE}
+gl.report.sexlinked()
+
+gl.report.callrate()
+
+gl.report.reproducibility()
+gl.report.rdepth()
+
+gl.report.monomorphs()
+gl.report.secondaries()
+
+gl.report.hamming()
+gl.report.taglength()
+gl.report.overshoot()
+
+```
+
+We have provided a text box below the report function for you to write an assessment based on 
+
+As is recommended, let's start with sexlinked.
+
+## 4-3.1: Sexlinked
+
+Linkage is an important consideration for many analyses. Fortunately, SNPs on separate sequence tags can be considered to assort independently because of the sparse nature of their sampling across the genome. However, if two SNPs occur in a non-recombining block of sequence, they will be co-inherited. This occurs for SNPs that reside in the non-recombining region of the sex chromosomes. They are referred to as sex-linked. `gl.report.sexlinked()` identifies putative sex-linked SNP loci.
+
+The dragons have a XY system (males being heterogametic) so we need to specify that in the function, using the argument `system =`. You will need to use lower case "xy". 
+
+```{r exfour1, exercise=TRUE, message=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour1-solution}
+gl.report.sexlinked(gl, system = 'xy')
+```
+
+An important requirement of identifying sexlinked markers is having identified males and females in your dataset. If you do not you will start with reporting on call rate instead.
+
+
+## 4-3.2: Call rate
+
+A filter for Call Rate can be applied to loci and to individuals. When filtering on loci, only those for which the associated SNP is called in at least a specified proportion will be retained. When filtering on individuals, only those individuals for which a specified percentage of loci are scored for a SNP polymorphism will be retained. 
+
+Recall that Call Rate for SNPs can arise from two sources. The first source is where a missing value arises because the sequence tag bearing the target SNP cannot be amplified – there has been a mutation at one or both of the restriction sites. The second source of missing values is where the read depth is insufficient to make a reliable call on the SNP. Either way, the SNP is not called and is recorded as NA.
+
+`gl.report.callrate()` summarises CallRate values for loci and individuals.  A locus can fail to call for an individual because the sequence tag was missed during sequencing (if a service with low read depth) or because of a mutation at one or both of the restriction enzyme sites or internal to the sequence tag. 
+
+### Call rate "loc"
+
+First let's see the report for call rate on loci of our data `gl`. To do this we need to the method within `gl.report.callrate()` using `method = "loc"`.
+
+```{r exfour2, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour2-solution}
+gl.report.callrate(gl, method = 'loc')
+```
+
+
+### 
+
+Each report function is matched with a filter function, e.g. `gl.filter.callrate()` (refer Chapter 5). What threshold would you choose?
+
+### Call Rate "ind"
+
+A second way of filtering on Call Rate is to remove individuals that have sequenced particularly poorly. This may occur if the associated samples are degraded in comparison with other samples. We again first report the Call Rate, this time for individuals.
+
+Now lets report on individual call rates. We use the same function as before but make the method equal to `"ind"`.
+
+```{r exfour3, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour3-solution}
+gl.report.callrate(gl, method='ind')
+```
+
+### 
+The output will include a list of populations and the Call Rate averaged across individuals, and a list of the top worst individuals in terms of their call rate. This will allow you to make a reasoned judgement on the impact of filtering out individuals.
+
+What threshold would you choose based on individuals?
+
+For further help, type `?gl.report.callrate`.
+
+## 4-3.3: Monomorphs
+
+
+`gl.report.monomorphs()` provides a count of polymorphic and monomorphic loci. 
+
+```{r exfour4, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour4-solution}
+gl.report.monomorphs(gl)
+```
+
+It is not always recommend to remove monomorphic loci, especially if you have subset your data and still intend to compare its genetic measures to the rest of your data. 
+
+###
+
+Matched with `gl.filter.monomorphs()`(refer Chapter 5). For further help, type `?gl.report.monomorphs`. Many functions also have a mono.rm option which, if TRUE, filters monomorphic loci.
+
+## 4-3.4 Secondaries
+
+Sequence tags can often contain more than one SNP, potentially up to 7 SNPs in a sequence tag of 69 bp. Alleles at these SNP loci are potentially co-inherited and so are linked. Because of their close proximity, these multiple SNPs within a single sequence tag (referred to in dartR as 'secondaries') are likely to be strongly linked (inherited together), which is problematic for many analyses. So, one might wish to filter out the multiple SNPs to leave only one per sequence tag.
+
+Diversity Arrays Technology include multiple SNPS in a single sequence tag each as separate records in the data provided with your report. The decision becomes, which SNP to retain, and which SNPs to discard. One strategy is to leave the filtering of secondaries until last, so that you are considering only those secondaries that have survived the earlier filtering on call rate, reproducibility and read depth. You can then choose one from the surviving secondaries at random (`method='random'`) or based on comparisons of reproducibility (RepAvg) and polymorphism information content (PIC) (`method='best'`). The call is `gl.report.secondaries()` which identifies and counts the number of SNP loci in each sequence tag. Try it on `gl`.
+
+```{r exfour5, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour5-solution}
+gl.report.secondaries(gl)
+```
+
+###
+
+It has the added feature of modelling the frequency distribution of SNP locus counts and estimating the zero class, that is, the number of (unreported) sequence tags that are invariant. This can be useful for correcting some estimates, such as heterozygosity.
+
+Note that the estimate of the zero class involves an iterative process that does not always converge to a satisfactory solution for lamda. In this case it did. Note also that the estimate of the zero class can have a very substantial error associated with it, especially if the count for class 0 exceeds the count for the class 1. Useful, but not infallible.
+
+Matched with `gl.filter.secondaries()`, which will retain only one SNP from each 69bp sequences, i.e. retaining only one sequence tag, using one of two methods: *random* selection or *best* call rate. 
+
+For further help, type `?gl.report.secondaries`.
+
+## 4-3.5: Reproducibility
+
+The reproducibility function summarises repAvg (SNP) or reproducibility (SilicoDArT) values for each locus. DArT runs technical replicates that allow for an assessment of the reliability of the scoring for each locus. 100% means that identical results were obtained for both technical replicates. 
+
+Try running the `gl.report.reproducibility()` on `gl`. 
+
+```{r exfour6, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour6-solution}
+gl.report.reproducibility(gl)
+```
+
+###
+
+Matched with `gl.filter.reproducibility()` (refer Chapter 5). 
+
+For further help, type `?gl.report.reproducibility`.
+
+## 4-3.6: Read depth
+
+`gl.report.rdepth()` reports an estimate of average read depth for each locus. Adequate read depth is desirable for analyses requiring accurate calls of heterozygotes in particular. 
+
+```{r exfour7, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfour7-solution}
+gl.report.rdepth(gl)
+```
+
+
+###
+
+Matched with `gl.filter.rdepth()` (refer Chapter 5). 
+
+For further help, type `?gl.report.rdepth`.
+
+
+## 4-3.7: Other
+
+These we will just show you the output and you can make your assessment based on that. 
+
+### Hamming distance
+
+Hamming Distance is a measure of how similar two sequence tags are. There is a risk that two very similar sequence tags are from the same locus distinguished only by the rare read error. Sequence tags produced by DArT have already been filtered by Hamming Distance (typically threshold 3 bp) but you might choose to be more stringent. `gl.report.hamming()` will give you an indication of whether you have an issue to resolve or not. 
+
+```{r}
+#gl.report.hamming(gl) takes too long
+```
+
+###
+
+Matched with `gl.filter.hamming()` (refer Chapter 5). 
+
+For further help, type `?gl.report.hamming.`
+
+### Tag lengths
+
+Tag lengths (each bearing one or more SNPs) can vary substantially, typically from 20bp to 69 bp in the case of DArT data. `gl.report.taglength()` reports a frequency tabulation of sequence tag lengths. 
+
+```{r}
+gl.report.taglength(gl)
+```
+
+
+###
+
+Matched with `gl.filter.taglength()` (refer Chapter 5). For further help, type `?gl.report.taglength.`
+
+
+###
+
+Matched with `gl.drop.sexlinked()` (refer Chapter 5). For further help, type `?gl.report.sexlinked`.
+
+### Overshoot
+
+The overshoot report deals with a rare anomaly. Occasionally the adaptor sequence has close sequence homology with part of the sequence tag. When this occurs part of the sequence tag is eliminated and sometimes this carries the SNP with it. `gl.report.overshoot()` reports loci for which the SNP has been trimmed along with the adaptor sequence. 
+
+
+```{r}
+gl.report.overshoot(gl)
+```
+
+
+###
+
+Matched with `gl.filter.overshoot()` (refer Chapter 5). For further help, type `?gl.report.overshoot.`
+
+###
+
+**Well done!** That was a lot of reporting. Head back to the ebook for some prerequisite reading before the next worked example.
+
+
+## Worked Ex 5-1: Filter sequence
+
+After all those reports we should have a bit of an idea about the type of filtering we plan to do. So, referring back to your reports let's get started with some filtering. 
+
+A good place to start is with call rate. Because filtering on loci and individual call rates are so intertwined sometimes its good to play around with the sequence of these two filters. 
+
+### Visualise 
+
+First let's visualise our missing data using a smear plot `gl.smearplot()`
+
+```{r exfive, exercise=TRUE, exercise.setup = "gl2"}
+
+```
+
+```{r exfive-solution}
+gl.smearplot(gl)
+```
+
+### Filter call rate
+Let's now start with some call rate filtering. Run the code below and then remove the hash(#) from line 2 and rerun the code and see if it has an effect.   
+
+```{r exfive2, exercise=TRUE, exercise.setup = "gl2"}
+gl_cr <- gl
+#gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.5, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'loc', threshold = 0.95, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.95, verbose = 0)
+
+nLoc(gl_cr)
+nInd(gl_cr)
+
+```
+
+```{r exfive2-solution}
+gl_cr <- gl
+gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.5, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'loc', threshold = 0.95, verbose = 0)
+gl_cr <- gl.filter.callrate(gl_cr, method = 'ind', threshold = 0.95, verbose = 0)
+
+nLoc(gl_cr)
+nInd(gl_cr)
+gl.smearplot(gl_cr)
+```
+
+## Worked Ex 5-2: Filtering
+
+Alright now we understand a little about filter sequencing let's put together a filtering protocol. 
+
+
+```{r exfive3, exercise=TRUE, exercise.setup = "gl2"}
+gl_filter <- gl
+gl_filter <- gl.filter.callrate(gl_filter, method = 'loc', threshold = 0.95)
+gl_filter <- gl.filter.callrate(gl_filter, method = 'ind', threshold = 0.95)
+gl_filter <- gl.filter.reproducibility(gl_filter, threshold = 0.99)
+gl_filter <- gl.filter.rdepth(gl_filter, lower = 5, upper = 60)
+gl_filter <- gl.filter.monomorphs(gl_filter)
+gl_filter <- gl.filter.secondaries(gl_filter, method = 'random')
+
+
+```
+
+
+```{r glfilt}
+gl <- tympo.gl
+pop(gl) <- gl@other$ind.metrics$year
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+
+gl_filter <- glknown
+gl_filter <- gl.filter.callrate(gl_filter, method = 'loc', threshold = 0.95)
+gl_filter <- gl.filter.callrate(gl_filter, method = 'ind', threshold = 0.95)
+gl_filter <- gl.filter.reproducibility(gl_filter, threshold = 0.99)
+gl_filter <- gl.filter.rdepth(gl_filter, lower = 5, upper = 60)
+gl_filter <- gl.filter.monomorphs(gl_filter)
+gl_filter <- gl.filter.secondaries(gl_filter, method = 'random')
+
+```
+
+## Worked Ex 5-3: Recalculating
+
+Remember, the locus metrics are no longer valid if individuals or populations are deleted from the dataset. For example, if you filter out a population for which the individuals have particularly bad call rates, then the call rate parameter held in the locus metrics will no longer be accurate. It will need to be recalculated. This is true of many of the locus metrics.
+
+So, after filtering your data, it is wise to recalculate the locus metrics with
+
+
+```{r exfive4, exercise=TRUE, exercise.setup = "glfilt"}
+gl_filter <- gl.recalc.metrics(gl_filter)
+gl_filter
+```
+
+```{r exfive4-solution}
+gl_filter <- gl.recalc.metrics(gl_filter)
+```
+
+ 
+
+Similarly, when filtering has resulted in removal of some individuals or populations, variation at several loci may be lost. Some loci may even be scored as missing across all individuals. You may wish to remove these monomorphic loci from your dataset with
+
+
+```{r exfive5, exercise=TRUE, exercise.setup = "glfilt"}
+gl_filter <- gl.filter.monomorphs(gl_filter)
+```
+
+```{r exfive5-solution}
+gl_filter <- gl.filter.monomorphs(gl_filter)
+```
+
+Note that many functions have a mono.rm and recalc parameters that allow you to remove monomorphic loci or recalculate metrics on the fly.
+
+It is not a fatal error to forget to recalculate the locus metrics because dartR scripts will detect if they have not been recalculated and rectify this before they a particular locus metric is needed. 
+
+
+## Worked Ex 6-1: Visualise
+
+Alright, our data are ready but before we investigate genetic diversity, we want to check the structure of our population. Was management right in thinking the Googong and Royalla are the one population? 
+
+A good first step for assessing structure is the beloved PCA, which you should have read all about already in the intro to dartR ebook Chapter 6 (link). if you haven't already, go check it out now and then come back to the worked examples. 
+
+Now that we know what a PCA does let's run a pca on our filtered data. There are two steps involved. First calculating our principle components using `gl.pcoa()`, then it is time for plotting using `gl.pcoa.plot()`. 
+
+
+### Principle components
+
+Let's start with our principle components, `gl.pcoa()`. 
+
+```{r exsix, exercise=TRUE, exercise.setup = "glfilt"}
+pc <- gl.pcoa(gl_filter)
+```
+
+
+There are quite a few outputs, importantly these outputs help define the number of significant axese that represent structure, rather than noise. It is common for people to only look at the first two axese when in reality they only represent a portion of the structure. It is usuasally worth investigating the other influencial axeses. But let's start with the first 2
+
+### Visualising PC1 and PC2
+
+```{r glfiltpc}
+gl <- tympo.gl
+pop(gl) <- gl@other$ind.metrics$year
+glknown <- gl.drop.ind(gl, ind.list = 'AA24617')
+
+gl_filter <- glknown
+gl_filter <- gl.filter.callrate(gl_filter, method = 'loc', threshold = 0.95)
+gl_filter <- gl.filter.callrate(gl_filter, method = 'ind', threshold = 0.95)
+gl_filter <- gl.filter.reproducibility(gl_filter, threshold = 0.99)
+gl_filter <- gl.filter.rdepth(gl_filter, lower = 5, upper = 60)
+gl_filter <- gl.filter.monomorphs(gl_filter)
+gl_filter <- gl.filter.secondaries(gl_filter, method = 'random')
+
+pc <- gl.pcoa(gl_filter)
+```
+
+```{r exsix2, exercise=TRUE, exercise.setup = "glfiltpc"}
+gl.pcoa.plot(pc, gl_filter)
+```
+
+Well it looks like there is some structure but we have it coloured by year. Let's add an `as.pop = "pop"` to see how our sampling locations segregate.
+
+```{r exsix3, exercise=TRUE, exercise.setup = "glfiltpc"}
+gl.pcoa.plot(pc, gl_filter)
+```
+
+```{r exsix3-solution}
+gl.pcoa.plot(pc, gl_filter, as.pop = 'pop')
+```
+
+
+### Visualising PC3 and PC4
+
+Now to look at other axese we can just include two arguments `yaxis = 3` and `xaxis = 4`, with the numbers associated with the principle component. 
+
+```{r exsix4, exercise=TRUE, exercise.setup = "glfiltpc"}
+gl.pcoa.plot(pc, gl_filter, as.pop = 'pop')
+```
+
+```{r exsix4-solution}
+gl.pcoa.plot(pc, gl_filter, as.pop = 'pop',yaxis = 3, xaxis = 4)
+```
+
+There doesn't seem much structure associated with location in these lower levels. 
+
+## Diversity
+
+Well done taking a first look at the structure of the Tympos. Next steps are evaluating diversity, but that will come later in the next ebook.
+
+But that brings us to the end of this worked example. Moving on there are integrative exercises for you to practice what you have learned. Give them ago and start to understand population genetic data in new ways. 
+
+
+## Exercise 1
+
+Tympo unknown
+
+## Exercise 2
+
+Macrobrachium is a large and cosmopolitan crustacean genus of high economic importance worldwide. The authors of this study investigated the morphological and molecular identification of freshwater prawns of the genus Macrobrachium in South, Southwest and Littoral regions of Cameroon in Africa. Seven species occur in the area:  M. vollenhovenii, M. macrobrachion, M. sollaudii, M. dux, M. chevalieri, M. felicinum and an undescribed Macrobrachium species. The objective of the study was to validate (or invalidate) the identified species based on their genetic profiles. A total of 93 individuals representing these species were subjected to genetic characterization using 1,814 DArT markers. This study is considered valuable for informing breeding design and genetic resource conservation programs for Macrobrachium in Africa.
+
+Refer to the original paper by Judith Makombu and her team for further detail on the study. 
+
+You are asked to use this dataset to apply what you have learned from this introductory eBook, drawing from across all Chapters of this eBook. Note that the data may have been modified for educational purposes and that you should refer to the original paper and its supplementary files for the definitive data, or contact the authors directly, if you wish to draw upon these data for research purposes.
+
+## Exercise 3
+
+The Western Sawshell Turtle Myuchelys bellii is an endangered species of freshwater turtle that resides in upstream regions of the Murray-Darling River drainage basin (MDB) in Australia. It is currently restricted to the upland regions of the Namoi, Gwydir and Border Rivers subdrainages of the MDB. Populations are through to have declined through a combination of river regulation, impoundment, and reduced flow connectivity, predation of eggs by foxes and pigs, and degradation of riparian vegetation and instream habitat. Populations are thought to be fragmented which makes the species particularly vulnerable to future rapid changes in climate, habitat and disease outbreak.
+
+The objective of this study, as yet unpublished, is to examine genetic structure across the range of the species with a view to informing options for its conservation management.
+
+You are asked to use this dataset to apply what you have learned from this introductory eBook, drawing from across all Chapters of this eBook. Note that the data may have been modified for educational purposes and should not be used for research purposes.
+
+
+## Exercise 4
+
+andscape-scale conservation needs to consider metapopulation dynamics declines of species facing multiple threats to their survival are to be abated or reversed. This study uses SNPs in support of decision-making in the context of metapopulations of the northern quoll Dasyurus hallucatus in the Pilbara of Western Australia. The landscape is subject to multiple uses and is a hotspot for biodiversity and mining. One objective of this study was to examine genetic structure across the range of the species with a view to informing options for its conservation management.
+
+This work has been published in Conservation Biology. You are encouraged to read this paper to gain a greater appreciation of the context of the analysis.
+
+You are asked to use this dataset to apply what you have learned from this introductory eBook, drawing from across all Chapters of this eBook. Note that the data may have been modified for educational purposes and should not be used for research purposes.
+
+
+
