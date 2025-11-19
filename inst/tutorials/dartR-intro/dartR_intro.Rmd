@@ -784,7 +784,7 @@ Now to the Canberra grassland earless dragon genetic data. Let's start by downlo
 
 ```{r eval = FALSE}
 write.csv(system.file("extdata",
-                      "Report_DTym25-13579_10_moreOrders_SNP_1.csv",
+                      "",
                       package = "dartRintro"),
           './data/Report_DTym25-13579_10_moreOrders_SNP_1.csv')
 ```
@@ -1580,40 +1580,3 @@ You are asked to use this dataset to apply what you have learned from this intro
 
 
 
-
-## shiny app
-
-```{r, context="render", echo=FALSE}
-sliderInput("bins", "Number of bins:", min = 1, max = 50, value = 30)
-plotOutput("distPlot")
-```
-
-```{r, context="server"}
-output$distPlot <- renderPlot({
-  x <- faithful[, 2]  # Old Faithful Geyser data
-  bins <- seq(min(x), max(x), length.out = input$bins + 1)
-  hist(x, breaks = bins, col = 'darkgray', border = 'white')
-})
-```
-
-
-## shiny app two
-
-
-
-```{r, context="render", echo=FALSE}
-radioButtons('xax', label = 'PC for x axis',choices = 1:5,
-             selected = 1, inline = T)
-radioButtons('yax', label = 'PC for y axis',choices = 1:5,
-             selected = 2, inline = T)
-plotOutput("pcaPlot")
-```
-
-```{r, context="server"}
-
-output$pcaPlot <- renderPlot({
-  pc <- gl.pcoa(possums.gl, verbose = 0)
-  plotit <-gl.pcoa.plot(pc, possums.gl, xaxis = input$xax,
-                         yaxis = input$yax)
-})
-```

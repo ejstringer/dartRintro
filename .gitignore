@@ -60,3 +60,6 @@ rsconnect/
 
 # raw data
 /data-raw/*.csv
+
+*_files
+

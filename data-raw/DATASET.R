@@ -7,8 +7,38 @@ library(dartRverse)
 # https://r-pkgs.org/data.html#sec-data-data-raw
 
 # load --------------------------------------------------------------------
-tympos <- gl.read.dart("./data-raw/Report_DTym25-12345_10_moreOrders_SNP_1.csv", ## Kept ~5500 loci from oder **_SNP_2.csv
+tympos1 <- gl.read.dart("./data-raw/SNPs_original.csv", 
                         ind.metafile = "./data-raw/GED2025_corr.csv")
+gl.report.monomorphs(tympos1)
+tym <- gl.filter.secondaries(tympos1)
+
+
+1-(nLoc(tym)/nLoc(tympos1))
+
+seconds <- which(!tympos1@loc.names %in% tym@loc.names)
+
+table(tympos1@other$loc.metrics$clone %in% tympos1@other$loc.metrics$clone[seconds])
+
+distsec <- round(table(table(tympos1@other$loc.metrics$clone))*0.15)
+clonetb <- table(tympos1@other$loc.metrics$clone)
+clonelist <- list()
+for (i in 1:5) {
+  clonelist[[i]]<-names(clonetb)[clonetb == i][1:distsec[i]]
+}
+
+indexsec <- which(tympos1@other$loc.metrics$clone %in% unlist(clonelist))
+# downsample loci ---------------------------------------------------------
+
+nLoc(tympos1)
+systematic_sample <- seq(1, nLoc(tympos1), length.out = 3210)
+
+systematic_sample <- c(1:5132,seconds[1:5000])
+
+systematic_sample <- indexsec
+tympos <- gl.keep.loc(tympos1, loc.list = tympos1@loc.names[systematic_sample])
+tympos
+
+gl.report.secondaries(tympos)
 
 # wild pops only ----------------------------------------------------------
 
@@ -21,7 +51,7 @@ tw2_5 <- gl.drop.ind(tw2, ind.list =  "AA61626")
 tw2_5 <- gl.drop.ind(tw2_5, ind.list =  "CK1 hatchling")
 tw_final <- tw2_5
 nInd(tw_final)
-
+tw_final <- gl.filter.monomorphs(tw_final)
 # generic pop names -------------------------------------------------------
 
 pop(tw_final) <- factor(ifelse(grepl('West', tw_final@other$ind.metrics$pop),
@@ -39,14 +69,14 @@ gl.map.interactive(possums.gl)
 poplocation <- cbind(id = possums.gl@ind.names, 
                      pop = possums.gl@pop, 
                      possums.gl@other$latlon) %>% 
-  filter(pop %in% LETTERS[c(1:3,5:6)]) %>% 
+  filter(pop %in% LETTERS[c(2:4,5)]) %>% 
   mutate(pop = case_when(
-    pop == 'F' ~ 'A',
+   # pop == 'F' ~ 'D',
     pop == 'C' ~ 'B',
     .default = pop
   )) %>% 
   mutate(pop = case_when(
-    pop == 'A' ~ 'N_Can',
+    pop == 'D' ~ 'N_Can',
     pop == 'E' ~ 'S_Can',
     pop == 'B' ~ 'W_Can'
   )) %>% 
@@ -62,8 +92,8 @@ poplocationE <- poplocation %>%
   rbind(data.frame(pop = 'E_Can', 
                    min_lat = poplocation$min_lat[3],
                    max_lat = poplocation$max_lat[3],
-                   min_lon = poplocation$max_lon[2],
-                   max_lon = poplocation$min_lon[1]))
+                   min_lon = poplocation$max_lon[2]-0.03,
+                   max_lon = poplocation$min_lon[1]-0.03))
 
 individuals<-left_join(idpop, poplocationE)
 table(tw_final@ind.names == individuals$id)
@@ -114,10 +144,15 @@ tw_final_filtered <- gl.filter.rdepth(tw_final_filtered,lower = 5, upper=50)
 tw_final_filtered <- gl.filter.callrate(tw_final_filtered, threshold = 0.95,method = "ind")
 tw_final_filtered <- gl.filter.reproducibility(tw_final_filtered)
 
+
 nInd(tw_final_filtered)
 nLoc(tw_final_filtered)
 
 gl.report.monomorphs(tw_final_filtered)
+gl.report.secondaries(tw_final_filtered)
+
+tw_final_filtered <- gl.filter.secondaries(tw_final_filtered)
+
 ## pcoa --------------------------------------------------------------------
 pop(tw_final_filtered) <- tw_final_filtered@other$ind.metrics$pop
 pc <- gl.pcoa(tw_final_filtered)
@@ -151,7 +186,7 @@ h %>%
   geom_smooth(method = 'lm', aes(group = pop))+
   theme_classic()
 
-
+gl.report.maf(tw_final_filtered)
 
 ## structure ---------------------------------------------------------------
 
@@ -167,9 +202,9 @@ h %>%
 # csv keep files ----------------------------------------------------------
 
 
-loc_data <- read.csv('./data-raw/Report_DTym25-12345_10_moreOrders_SNP_1.csv',
+loc_data <- read.csv('./data-raw/SNPs_original.csv',
                      header = F)
-
+table(loc_data$V2 %in% unlist(clonelist))/2
 ## ids are in row 7
 loc_data[1:9, 30:40]
 row6 <- loc_data[7,]
@@ -184,12 +219,12 @@ loc_data_keep <- loc_data[,c(1:locmet, indkeep)]
 newids <- data.frame(id = tw_final@other$ind.metrics$id[order(tw_final@other$ind.metrics$year)],
                      id2 = paste0('AA', 24001:(24000+nInd(tw_final)))) 
 
-new_loc_ids[new_loc_ids$id %in% new_loc_ids$id[duplicated(new_loc_ids$id)],]
+
 
 new_loc_ids <- data.frame(id = unlist(loc_data_keep[7,-c(1:24)]))%>% 
   left_join(newids)
 
-
+new_loc_ids[new_loc_ids$id %in% new_loc_ids$id[duplicated(new_loc_ids$id)],]
 # assign new ids
 table(loc_data_keep[7,-c(1:24)]==new_loc_ids$id)
 loc_data_keep[7,-c(1:24)] <- new_loc_ids$id2
@@ -199,12 +234,13 @@ tw_final@ind.names <- tw_final@other$ind.metrics$id
 
 new_loc_ids$id %>% duplicated %>% table
 
-
+keeploc <- which(loc_data$V2 %in% tw_final@other$loc.metrics$clone)
+loc_data_keep[c(1:7,keeploc),] %>% dim
 
 # save new data
 
-write.csv(loc_data_keep,
-          './data-raw/Report_DTym25-13579_10_moreOrders_SNP_1.csv',
+write.csv(loc_data_keep[c(1:7,keeploc),],
+          './data-raw/Report_DTym25-13579_SNP_2.csv',
           row.names = F) 
 
 ## DELETE top row of file and move to extdata
@@ -261,10 +297,10 @@ write.csv(tw_final@other$ind.metrics, './inst/extdata/Tympo_metadata.csv',
 prjdir <- getwd()
 setwd('../dartR.intro/inst/extdata/')
 
-tympo.gl <- gl.read.dart('Report_DTym25-13579_10_moreOrders_SNP_1.csv',
+tympo.gl <- gl.read.dart('Report_DTym25-13579_SNP_2.csv',
                          ind.metafile = 'Tympo_metadata.csv')
 tympo.gl@other$history
 usethis::use_data(tympo.gl, overwrite = TRUE)
 
 setwd(prjdir)
-
+  
