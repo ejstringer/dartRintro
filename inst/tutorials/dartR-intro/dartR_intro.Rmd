@@ -42,6 +42,26 @@ This is your hands on introduction to [dartR](https://github.com/green-striped-g
 
 If you can't see the left sidebar, you just need to make the tutorial panel wider.
 
+### R code box
+
+Throughout this tutorial there will be interactive R scripts/consoles (like the one below). This is like a mini version of R running within this tutorial. But since we are already in R, you can also follow along in your own console and start writing your own code in the source panel. You could even try testing some of what you learn on your own data.
+
+But first, try running the code below (press the button that says *Run Code*)
+
+```{r ex, exercise=TRUE}
+# Press the Run Code button to run this code
+1+1
+```
+
+
+### 
+
+It is worth noting that each R code box is independent, so code you ran in one will not be recognised by another. Don't worry though, we have done some fancy coding in the background for you to continue along, keeping track of the tasks performed before hand. 
+
+###
+
+For the worked examples, we’ve kept things simple: you only need to click the *Run Code* button and review the output. That said, if you’d like to experiment by editing the code and rerunning it to observe the effects, we strongly encourage you to do so.
+
 ### Google group
 
 Any troubles or tribulations with coding in dartR, we have a great community that can be found on the [dartR google group](https://groups.google.com/g/dartr).
@@ -145,8 +165,14 @@ These are all just ways to help you keep organised. Apply them as you see fit.
 Now lets get into some actual coding!
 
 ## Worked EX 2: Optional
+###
+If you are familiar with R you can proceed to Worked Ex 3. 
 
-Although we provide a chapter on R coding there are many R tutorials out there already. If you are new to R we recommend going through the [R Programming](https://github.com/swirldev/swirl_courses) course from the r package **swirl**. It teaches you R in your console. Here is the code to get started.
+###
+
+Although we provide a chapter on R coding there are many R tutorials out there already. If you are new to R we recommend going through the [R Programming](https://github.com/swirldev/swirl_courses) course from the r package **swirl**. It teaches you R in your console. 
+
+Here is the code to get started.
 
 ```{r eval=FALSE}
 library(swirl)
@@ -154,7 +180,9 @@ install_course("R Programming")
 swirl()
 ```
 
-If you are familiar with R you can proceed to the next section. Let's get started! 
+###
+
+Got the hang of R? If so, let’s move on!
 
 ## Worked EX 3: data and map
 ### 
@@ -162,7 +190,7 @@ It is time to start working in the dartRverse! Welcome!
 
 ###
 
-The worked examples will walk you through the process of preparing genetic data for analysis using the Canberra grassland earless dragon (Tympanocryptis lineata), a critically endangered species that is now found in a few remaining patches of lowland natural temperate grassland in the Australian Capital Territory. Refer to [ebook chapter 3](http://dartr.biomatix.org/dartR) for more details
+In these worked examples, we’ll walk you through how to prepare genetic data for analysis using the Canberra grassland earless dragon (Tympanocryptis lineata). These little dragons are critically endangered and now survive in just a few remaining patches of natural temperate grassland in the ACT. Refer to [ebook chapter 3](http://dartr.biomatix.org/dartR) for more details
 
 ###
 
@@ -189,7 +217,7 @@ It is worth noting that we have modified the data heavily for sake of illustrati
 
 ###
 
-Great now it is time for some data processing
+Alright, time to bring the data into R --- let's get started!
 
 ## Worked Ex 3-1: Load and save
 
@@ -281,23 +309,17 @@ Additionally it also includes the metadata associated with the individuals genot
 
 First let's confirm our `gl` is a dartR object using `class()`. 
 
-```{r echo = FALSE}
+```{r gl, echo = FALSE}
 gl <- tympo.gl
 
 ```
 
 
-```{r eval=FALSE}
+```{r x3e1, exercise=TRUE, exercise.setup = "gl"}
 class(gl)
 
 ```
 
-###
-
-```{r echo = FALSE}
-class(gl)
-
-```
 
 ###
 
@@ -307,15 +329,9 @@ Great! It says it is a *dartR* object from the package **dartR.base**.
 
 Now we can examine `gl`, we simply need to type its name
 
-```{r eval=FALSE}
+```{r x3e2, exercise=TRUE, exercise.setup = "gl"}
 gl
 
-```
-
-###
-
-```{r echo = FALSE}
-gl
 ```
 
 ###
@@ -328,17 +344,12 @@ Another useful way to get an overview of the data is the basic report function,
 `gl.report.basics()`. Within the function you can include the argument `verbose =` and set it as either 0, 1, 2, or 3, depending on the detail of output you want. Let's try with verbose equal to 1.
 
 
-```{r eval=FALSE}
+```{r x3e3, exercise=TRUE, exercise.setup = "gl"}
 gl.report.basics(gl, verbose = 1)
 
 ```
 
-###
 
-```{r exthree2, echo = FALSE}
-gl.report.basics(gl, verbose = 1)
-
-```
 
 ###
 That is a lot of output, and verbose is only set to 1. Setting verbose to 0 will result in no output. Some useful bits of information are sample size as well as the percentage breakdown of 0s, 1s, 2s, and NAs in the data. Do you remember what these stand for?
@@ -352,17 +363,11 @@ If not refer back to the ebook. Otherwise let's keep moving.
 
 Let's get familar with some of the most important components to our data. We can use `nInd()` to remind ourselves of how many individuals are in the data.
 
-```{r eval=FALSE}
+```{r x3e4, exercise=TRUE, exercise.setup = "gl"}
 nInd(gl)
 
 ```
 
-###
-
-```{r exthree3x, echo = FALSE}
-nInd(gl)
-
-```
 
 ###
 
@@ -372,17 +377,11 @@ Just as expected `r nInd(gl)` individuals.
 
 The next important component is the number of populations, we can check this using `nPop()`.
 
-```{r eval=FALSE}
+```{r x3e5, exercise=TRUE, exercise.setup = "gl"}
 nPop(gl)
 
 ```
 
-###
-
-```{r exthree3, echo = FALSE}
-nPop(gl)
-
-```
 
 ###
 
@@ -390,19 +389,14 @@ That's interesting, if we look at the map under the [data and map]{style="color:
 
 ###
 
-Let's check what the population names are using `popNames()` to try and figure out what is going on.
+Let's check what the population names are using `popNames()`, to try and figure out what is going on.
 
-```{r eval=FALSE}
+```{r x3e6, exercise=TRUE, exercise.setup = "gl"}
 popNames(gl)
 
 ```
 
-###
 
-```{r exthree4, echo = FALSE}
-popNames(gl)
-
-```
 
 ###
 
@@ -412,19 +406,13 @@ Ok, that makes more sense, we have a population called Unknown, so not an actual
 
 We can check this using `pop()`, which lists each individuals' population, and then run it within `table()`, which counts the number of values. 
 
-```{r  eval=FALSE}
+```{r  x3e7, exercise=TRUE, exercise.setup = "gl"}
 table(pop(gl))
 
 ```
 
 ###
 
-```{r exthree5a, echo = FALSE}
-table(pop(gl))
-
-```
-
-###
 
 Well that's good to know, it is just the one individual with an unknown population.
 
@@ -432,61 +420,41 @@ Well that's good to know, it is just the one individual with an unknown populati
 
 Let's do a bit of fancy coding to figure out its id. we can use the function `indNames()` and square brackets with a conditional statement where `pop(gl) == 'Unknown'`. 
 
-```{r eval=FALSE}
+```{r x3e8, exercise=TRUE, exercise.setup = "gl"}
 indNames(gl)[pop(gl) == 'Unknown']
 
 ```
 
 ###
 
-```{r exthree5, echo = FALSE}
-indNames(gl)[pop(gl) == 'Unknown']
-
-```
+Alright, that’s not very revealing. Let’s dig deeper into the individual-level data to see what we can learn about our unknown individual.
 
 ###
 
-Alright, not super informative, what about we get more information from the individual data about our unknown individual.
+dartR objects store individual metadata, which can seem a bit tricky to access at first. But don’t worry, it’s simpler than it looks! All you need is the correct address: the individual metadata is located at `gl@other$ind.metrics`.
 
 ###
 
-dartR objects store individual metadata that can seem a little hard to access. But don't worry it's easier than it looks, all you need to know is the metadata's *address*. The individual metadata lives at `gl@other$ind.metrics`.
+We can check the names of our columns in the metadata using `names()`. Another useful function for a quick overview of a dataframe is `head()` which shows you the column names and the first six entries. 
 
-###
-
-Let's first check the names of our columns in the metadata using `names()`. Another useful function for a quick overview of a dataframe is `head()` which shows you the column names and the first six entries. 
-
-```{r eval=FALSE}
+```{r x3e9, exercise=TRUE, exercise.setup = "gl"}
 head(gl@other$ind.metrics)
 
 ```
 
 ###
 
-```{r exthree6, echo = FALSE}
-head(gl@other$ind.metrics)
-
-```
-
-###
-
-We have quite a lot of information for our dragons. Importantly we have latitudes and longitudes if we want to do any distance based analyses and we also have sex for detecting sex linkage, which will come later.   
+We have quite a lot of information for our dragons. Notably, we have latitude and longitude data for any distance-based analyses, as well as sex information, which will be key later when we report on sex linkage.
 
 ###
 
 Great now lets check the info about our unknown individual. We can use the same condition as we did before but now the square brackets come after the `gl@other$ind.metrics` and need a comma to distinguish between rows and columns, remember `[rows, columns]`.
 
-```{r eval=FALSE}
+```{r x3e10, exercise=TRUE, exercise.setup = "gl"}
 gl@other$ind.metrics[pop(gl) == 'Unknown',]
 
 ```
 
-###
-
-```{r exthree7, echo = FALSE}
-gl@other$ind.metrics[pop(gl) == 'Unknown',]
-
-```
 
 ###
 
@@ -501,23 +469,18 @@ Alright, I think it is time to check out some of the genetic data.
 
 Let's start by undertaking some basic diagnostics. First let's remind ourselves how many loci are in our dataset, using `nLoc()`.
 
-```{r eval=FALSE}
+```{r x3e11, exercise=TRUE, exercise.setup = "gl"}
 nLoc(gl)
 ```
 
-###
-
-```{r exthree8, echo = FALSE}
-nLoc(gl)
-```
 
 ###
 
-Ok well that seems like an low number of SNPs. I am used to seeing SNPs in the tens of thousands, maybe someone has tampered with the data, or maybe forgot to provide the other data file with more SNPs. DArT usually sends two or even three files if there are more than 50,000 SNPs. 
+Hmm, that seems like a surprisingly low number of SNPs. I’m used to seeing counts in the tens of thousands. Perhaps the data were altered, or maybe the additional file with more SNPs wasn’t provided. DArT typically sends two or even three files when there are more than 50,000 SNPs.
 
 ###
 
-Whoops I forgot, these data have been modified for educational purposes. Just remember you should expect a lot more SNPs, which also means longer analysis times. Let's see what we can do with the SNPs we have.
+Ah, that’s right, these data have been modified for educational purposes. Keep in mind that in real datasets, you should expect far more SNPs, which also means longer analysis times. 
 
 ###
 
@@ -527,25 +490,19 @@ To get a better understanding of how the SNP data are stored we can use `as.matr
 
 To make it a little easier to visualize lets look at a subset of individuals and SNPs, we use square brackets for this, `[individuals, SNPs]`. Let's display the genotypes for the first 20 individuals and the first 3 loci. 
 
-```{r eval=FALSE}
+```{r x3e12, exercise=TRUE, exercise.setup = "gl"}
 as.matrix(gl)[1:20,1:3]
 
 ```
 
 ###
 
-```{r exthree9, echo = FALSE}
-as.matrix(gl)[1:20,1:3]
-
-```
-
-###
 
 There is not much variation in the first two loci, they are either coded as 0, which indicates a homozygote for the reference allele, or NA for missing. Loci three has more diversity, with homozygotes for both the reference (0) and alternative (2) alleles as well as a few heterozygotes (1).
 
 ###
 
-Each of the loci have missing data but we are only seeing the first 20 individuals, how much missing data are there for each of the loci? We can actually check this by looking at the loc metrics.
+Each locus contains some missing data, but so far we’ve only seen the first 20 individuals. How much missing data does each locus actually have? We can check this by examining the locus metrics.
 
 ###
 
@@ -555,30 +512,21 @@ The locus metadata included in the dartR object are those provided as part of yo
 
 The loc metrics are similarly located as the ind metrics, `gl@other$loc.metrics`. Let's first look at the names of the loc metrics using `names()`.
 
-```{r eval=FALSE}
+```{r x3e13, exercise=TRUE, exercise.setup = "gl"}
 names(gl@other$loc.metrics)
 
 ```
 
-###
-
-```{r exthree10, echo = FALSE}
-names(gl@other$loc.metrics)
-
-```
 
 ###
 
-There is quite a bit of information in there. We are interested in the first three loci's rate of missing data, i.e., call rate. Therefore, we are interested in the `CallRate` column. We can access columns just like with any other dataframe, using `$`. We can then use `[]` to subset the first 1:3 loci.
-
-```{r eval=FALSE}
-gl@other$loc.metrics$CallRate[1:3]
-
-```
+There is quite a bit of information in there. We are interested in the first three loci's rate of missing data, i.e., call rate. Therefore, we are interested in the `CallRate` column. 
 
 ###
 
-```{r exthree11, echo = FALSE}
+We can access columns just like with any other dataframe, using `$`. We can then use `[]` to subset the first 1:3 loci.
+
+```{r x3e14, exercise=TRUE, exercise.setup = "gl"}
 gl@other$loc.metrics$CallRate[1:3]
 
 ```
@@ -589,25 +537,18 @@ Which locus has the most missing data?
 
 ###
 
-Instead of just looking at the first three loci, why don't we do a histogram of all the loci's call rate. Instead of subsetting let's use `hist()` on the `CallRate` column instead.
+Rather than just inspecting the first three loci, let’s visualize the distribution of call rates across all loci. We can do this by creating a histogram using the `CallRate` column with the `hist()` function, instead of subsetting.
 
-```{r eval=FALSE}
+```{r x3e15, exercise=TRUE, exercise.setup = "gl"}
 hist(gl@other$loc.metrics$CallRate)
 
 ```
 
 ###
 
-```{r exthree12, echo = FALSE}
-hist(gl@other$loc.metrics$CallRate)
-
-```
+Most loci have a call rate close to 1, which is great! This indicates that we’ll retain a large number of high-quality loci after filtering (which we will get to later in Chapter 5).
 
 ###
 
-Most of the loci have a call rate close to 1! That means we should have a lot of high quality loci after filtering. 
-
-###
-
-You really must be getting to know the data by now. Let's move on to some data manipulations. 
+By now, you should have a good feel for the data. Let’s take the next step and dive into some data manipulations.
 
