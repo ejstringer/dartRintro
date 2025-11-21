@@ -65,13 +65,10 @@ Alright! Get started with your first worked example. After that head back to the
 <p>Good luck on your Pop Gen journey! 😁</p>
 
 
-
-
-
 ## Worked Ex 1-1: Getting organised
 ###
 
-A good first step on any data analysis journey is to get a little organised. RStudio's projects are a great way to do that. Let's create a project for our grassland earless dragon analysis (we will use the same project for all the worked examples and exercises too!).
+A good first step on any data analysis journey is to get a little organised. RStudio's projects are a great way to do that. Let's create a project for this ebook (you can use the same project for all the worked examples and exercises too!).
 
 ### Create RStudio project
 
@@ -83,7 +80,7 @@ You can create a project in six easy steps (see fig below):
   
   3. Then select [New Project]{style="color:#a3a3a3; font-family:'Arial'"} at the top of the list
   
-  4. The next step is to name your project (i.e. folder name - how about *beginner_ebook*)
+  4. The next step is to name your project (i.e. folder name - how about *learning_dartR*)
   
   5. Then choose a location on your computer where you want to save your project ([Browse...]{style="color:#a3a3a3; font-family:'Arial'"} for easy navigation)
   
@@ -108,7 +105,7 @@ The next way to get organised is to have a good folder system, this is the folde
 
 You might have additional folders but these are a good start.
 
-you can run the below code to generate the folders 
+you can run the below code to generate the folders (run the code `getwd()` to double check they will be created where you want them) 
 
 ```{r eval=FALSE}
 lapply(c('code', 'data', 'figures', 'output'), dir.create)
@@ -137,24 +134,39 @@ You can also use ctrl + Shift + R as a shortcut to define level 1 headings.
 
 ###
 
-What is nice is that then if you click on the outline at the top-right of your R script (indicated by the red arrow in the figure below) it will show you the headings in your script and you can also use it to navigate to different parts of your code by clicking on the headings in the outline.
+A great feature is that by clicking the outline icon in the top-right corner of your R script (highlighted by the red arrow in the figure below), you can view all the headings in your script. This outline also allows you to quickly navigate to different sections of your code by selecting the corresponding headings.
 
 ![](images/outline.png)
+
+###
 
 These are all just ways to help you keep organised. Apply them as you see fit. 
 
 Now lets get into some actual coding!
 
+## Worked EX 2: Optional
+
+Although we provide a chapter on R coding there are many R tutorials out there already. If you are new to R we recommend going through the [R Programming](https://github.com/swirldev/swirl_courses) course from the r package **swirl**. It teaches you R in your console. Here is the code to get started.
+
+```{r eval=FALSE}
+library(swirl)
+install_course("R Programming")
+swirl()
+```
+
+If you are familiar with R you can proceed to the next section. Let's get started! 
+
 ## Worked EX 3: data and map
 ### 
 It is time to start working in the dartRverse! Welcome!
 
-Let's start with an overview of the data.
+###
+
+The worked examples will walk you through the process of preparing genetic data for analysis using the Canberra grassland earless dragon (Tympanocryptis lineata), a critically endangered species that is now found in a few remaining patches of lowland natural temperate grassland in the Australian Capital Territory. Refer to [ebook chapter 3](http://dartr.biomatix.org/dartR) for more details
 
 ###
 
-The worked examples will walk you through the process of preparing genetic data for analysis using the Canberra grassland earless dragon (Tympanocryptis lineata), a critically endangered species that is now found in a few remaining patches of lowland natural temperate grassland in the Australian Capital Territory (refer to map below). Refer to [ebook chapter 3](http://dartr.biomatix.org/dartR) for more details
-
+Here is a map of the remaining populations.
 
 ```{r echo=FALSE}
 #devtools::install_github("r-spatial/mapview")
@@ -171,7 +183,9 @@ m<-leaflet() %>% addCircles(lng = tympo.gl@other$latlon$lon,
 
 [<small>*Data modified for educational purposes*</small>]{style="color:grey"}
 
-We have modified the data heavily for sake of illustration and they are provided for educational purposes only.
+###
+
+It is worth noting that we have modified the data heavily for sake of illustration and they are provided for educational purposes only.
 
 ###
 
@@ -181,22 +195,19 @@ Great now it is time for some data processing
 
 ###
 
-The ultimate goal is to assess the genetic status of the species. Given the low number of individuals remaining in the wild, managements main concern is whether the dragons are losing genetic diversity. **But before we can get into a genetic assessment of the species, there are a number of important steps to go through before hand**.
+Given the low number of individuals remaining in the wild, management's main concern is whether the dragons are losing genetic diversity. **But before we can get into a genetic assessment of the species, there are a number of important steps to go through before hand**.
 
 ### Working directory
 
-A first step is to make sure you have set your working directory. If you are in a project the working directory should be the folder location of your project. Refer to worked Ex 1-1.
+A first step is to make sure you have set your working directory. If you are in a project the working directory should be the folder location of your project. Refer to worked Ex 1-1 on creating projects. Alternatively, you can use `setwd()`.
 
 ### Download raw data
 
-Now to the Canberra grassland earless dragon genetic data. Let's start by downloading the SNP data and associated metadata and saving them in your project folder, or better in the folder called **data**. 
+Let's start by downloading the SNP data and associated metadata and saving them in your project folder, or better in a folder called **data**. 
 
-### 
 
 - *link to SNP file*. This is the set of SNP data for CGEDs, in 2-row format as would be supplied by [Diversity Arrays Technology Pty Ltd](https://www.diversityarrays.com).
 
-
-### 
 
 - *link to metadata file*. Recall that the individual metadata comprise attributes assigned to each individual.
 
@@ -213,20 +224,21 @@ gl <- gl.read.dart("./data/Report_DTym25-13579_SNP_2.csv",
 
 ###
 
-This is the output you should see when reading in the data.
-
 ```{r datainput, echo = FALSE, cache=TRUE}
 gl <- gl.read.dart(filename=system.file("extdata", "Report_DTym25-13579_SNP_2.csv", package = "dartRintro"),
                    ind.metafile=system.file("extdata", "Tympo_metadata.csv", package = "dartRintro"))
 ```
+###
+
+This is the output you should see when reading in the data. It provides an overview of the steps taken during the import process. Pay particular attention to any messages about samples that could not be found in the metadata, as these will not be loaded. If this occurs, you may need to locate and add the missing metadata for those individuals to the `ind.metafile` file. 
 
 ###
 
-We successfully read in the dragons genetic data, ready to interrogate.
+We successfully read in the dragons genetic data, now it is ready to interrogate.
 
 ### Save 
 
-It is always a good idea to save your data in binary form after loading it for the first time, for quicker access in your next R session.
+Just before we do, it is good practice to save your data in binary format after the initial load. This ensures much faster access in future R sessions.
 
 ```{r eval=FALSE}
 saveRDS(gl, 'tympo_genetic_data.rds')
@@ -234,19 +246,32 @@ saveRDS(gl, 'tympo_genetic_data.rds')
 
 ###
 
-Make sure you save your data as something reasonable and descriptive.
+You can also save it in a folder called **output** with the below code, assuming **output** is a folder in your working directory.
+
+```{r eval=FALSE}
+saveRDS(gl, './output/tympo_genetic_data.rds')
+```
+
+###
+
+Make sure you name the data something descriptive and reasonable. 
+
+###
+
+Great all saved, let's move on!
 
 ## Worked Ex 3-2: dartR object
+###
 
 Let's examine the contents of the Tympo dartR object.
 
 ### 
 
-Just before we do, lets do a quick refresher of what a dartR object actually is, of course if you want more background check out the [ebook chapter](http://dartr.biomatix.org/dartR) associated with this tutorial.
+Just before we do, lets do a quick refresher of what a dartR object actually is, of course if you want more background check out [ebook chapter](http://dartr.biomatix.org/dartR) 3.
 
 ### 
 
-If you are familiar with genlight objects, a dartR object is effectively a version of a genlight object that is specific to the dartR package suite. A genlight object is a data structure used to efficiently store and analyse large genetic marker data. It includes the allelic state for each SNP called and for every individual genotyped.
+A *dartR* object is effectively a data structure used to efficiently store and analyse large genetic marker data. It includes the allelic state for each SNP called and for every individual genotyped.
 
 ### 
 
@@ -254,7 +279,7 @@ Additionally it also includes the metadata associated with the individuals genot
 
 ### Data overview
 
-First let's confirm our `gl` is a dartR object using `class()`. Then to examine `gl` we simply need to run it on a new line and it will provide information about our data. 
+First let's confirm our `gl` is a dartR object using `class()`. 
 
 ```{r echo = FALSE}
 gl <- tympo.gl
@@ -264,7 +289,6 @@ gl <- tympo.gl
 
 ```{r eval=FALSE}
 class(gl)
-gl
 
 ```
 
@@ -272,21 +296,40 @@ gl
 
 ```{r echo = FALSE}
 class(gl)
+
+```
+
+###
+
+Great! It says it is a *dartR* object from the package **dartR.base**.
+
+###
+
+Now we can examine `gl`, we simply need to type its name
+
+```{r eval=FALSE}
+gl
+
+```
+
+###
+
+```{r echo = FALSE}
 gl
 ```
 
 ###
 
-Can you see what class it is?
+It provides us with a lot of useful information, the number of genotypes, which is referring to the number of individuals, and the number of SNPs. Just to name a few. 
 
 ###
 
-Another useful way to get an overview of our data is the basic report function,
-`gl.report.basics()`. Within the function you can include the argument `verbose =` and set it as either 0, 1, 2, or 3, depending on the detail of output you want. Setting verbose to 0 will result in no output. 
+Another useful way to get an overview of the data is the basic report function,
+`gl.report.basics()`. Within the function you can include the argument `verbose =` and set it as either 0, 1, 2, or 3, depending on the detail of output you want. Let's try with verbose equal to 1.
 
 
 ```{r eval=FALSE}
-gl.report.basics(gl)
+gl.report.basics(gl, verbose = 1)
 
 ```
 
@@ -297,14 +340,39 @@ gl.report.basics(gl, verbose = 1)
 
 ```
 
+###
+That is a lot of output, and verbose is only set to 1. Setting verbose to 0 will result in no output. Some useful bits of information are sample size as well as the percentage breakdown of 0s, 1s, 2s, and NAs in the data. Do you remember what these stand for?
+
+###
+
+If not refer back to the ebook. Otherwise let's keep moving.
 
 ## Worked Ex 3-3: Ind metrics
 ###
 
-Let's get familar with some of the most important components to our data. First, we want to check how many individuals were genotyped and then how many per population. We can check the number of individuals with `nInd()` and the number of populations with `nPop()`.
+Let's get familar with some of the most important components to our data. We can use `nInd()` to remind ourselves of how many individuals are in the data.
 
 ```{r eval=FALSE}
 nInd(gl)
+
+```
+
+###
+
+```{r exthree3x, echo = FALSE}
+nInd(gl)
+
+```
+
+###
+
+Just as expected `r nInd(gl)` individuals.
+
+###
+
+The next important component is the number of populations, we can check this using `nPop()`.
+
+```{r eval=FALSE}
 nPop(gl)
 
 ```
@@ -312,14 +380,17 @@ nPop(gl)
 ###
 
 ```{r exthree3, echo = FALSE}
-nInd(gl)
 nPop(gl)
 
 ```
 
 ###
 
-That's interesting, if we look at the map under [The data]{style="color:#cc9900"} tab it shows only four populations. Let's check what the population names are using `popNames()` to try and figure out what is going on.
+That's interesting, if we look at the map under the [data and map]{style="color:#cc9900"} tab it shows only four populations. 
+
+###
+
+Let's check what the population names are using `popNames()` to try and figure out what is going on.
 
 ```{r eval=FALSE}
 popNames(gl)
@@ -335,7 +406,11 @@ popNames(gl)
 
 ###
 
-Ok, that makes more sense, we have a population called Unknown, so not an actual population. Let's check how many individuals are in this *unknown* population. we can do this using `pop()`, to list all the individuals populations, within `table()` that counts the number of values. You can check the output of `pop()` first if you are interested.
+Ok, that makes more sense, we have a population called Unknown, so not an actual population. Let's check how many individuals are in this *unknown* population. 
+
+###
+
+We can check this using `pop()`, which lists each individuals' population, and then run it within `table()`, which counts the number of values. 
 
 ```{r  eval=FALSE}
 table(pop(gl))
@@ -351,8 +426,11 @@ table(pop(gl))
 
 ###
 
+Well that's good to know, it is just the one individual with an unknown population.
 
-Well that's good to know, it is just the one individual with an unknown population. Let's do a bit of fancy coding to figure out its id. we can use the function `indNames()` and square brackets with a conditional statement where `pop(gl) == 'Unknown'`. Give it ago below.
+###
+
+Let's do a bit of fancy coding to figure out its id. we can use the function `indNames()` and square brackets with a conditional statement where `pop(gl) == 'Unknown'`. 
 
 ```{r eval=FALSE}
 indNames(gl)[pop(gl) == 'Unknown']
@@ -368,14 +446,17 @@ indNames(gl)[pop(gl) == 'Unknown']
 
 ###
 
-Alright, not super informative, what about we get more information from the individual data about our unknown individual. 
+Alright, not super informative, what about we get more information from the individual data about our unknown individual.
+
+###
 
 dartR objects store individual metadata that can seem a little hard to access. But don't worry it's easier than it looks, all you need to know is the metadata's *address*. The individual metadata lives at `gl@other$ind.metrics`.
+
+###
 
 Let's first check the names of our columns in the metadata using `names()`. Another useful function for a quick overview of a dataframe is `head()` which shows you the column names and the first six entries. 
 
 ```{r eval=FALSE}
-names(gl@other$ind.metrics)
 head(gl@other$ind.metrics)
 
 ```
@@ -383,7 +464,6 @@ head(gl@other$ind.metrics)
 ###
 
 ```{r exthree6, echo = FALSE}
-names(gl@other$ind.metrics)
 head(gl@other$ind.metrics)
 
 ```
@@ -392,7 +472,9 @@ head(gl@other$ind.metrics)
 
 We have quite a lot of information for our dragons. Importantly we have latitudes and longitudes if we want to do any distance based analyses and we also have sex for detecting sex linkage, which will come later.   
 
-Great now lets check the info about our unknown individual. We can use the same condition as we did before but now the square brackets come after the `gl@other$ind.metrics` and need a comma to distinguish between rows and columns, remember `[rows, column]`.
+###
+
+Great now lets check the info about our unknown individual. We can use the same condition as we did before but now the square brackets come after the `gl@other$ind.metrics` and need a comma to distinguish between rows and columns, remember `[rows, columns]`.
 
 ```{r eval=FALSE}
 gl@other$ind.metrics[pop(gl) == 'Unknown',]
@@ -408,13 +490,16 @@ gl@other$ind.metrics[pop(gl) == 'Unknown',]
 
 ###
 
-All we know is that it is a Canberra grassland earless dragon. 
+All we know is that it is a Canberra grassland earless dragon...
+
+###
 
 Alright, I think it is time to check out some of the genetic data.
 
 ## Worked Ex 3-4: Loc metrics
+###
 
-Let's start by undertaking some basic diagnostics. First let's find out how many loci are in our dataset, using `nLoc()`.
+Let's start by undertaking some basic diagnostics. First let's remind ourselves how many loci are in our dataset, using `nLoc()`.
 
 ```{r eval=FALSE}
 nLoc(gl)
@@ -428,33 +513,45 @@ nLoc(gl)
 
 ###
 
-Ok well that seems like an low number of SNPs. I am more used to seeing SNPs in the tens of thousands, maybe someone has tampered with the data, or maybe forgot to provide the another data file with more SNPs. DArT usually sends two or even three files if there are more than 50,000 SNPs. Let's leave it for now and see what we can do with the SNPs we have.
+Ok well that seems like an low number of SNPs. I am used to seeing SNPs in the tens of thousands, maybe someone has tampered with the data, or maybe forgot to provide the other data file with more SNPs. DArT usually sends two or even three files if there are more than 50,000 SNPs. 
 
-To get a better understanding of how the SNP data is stored, first read chapter three of the ebook but then, we can us `as.matrix` to see the actual state of the SNPs for each individual. To make it a little easier to visualize lets look at a subset of individuals and SNPs, we use square brackets for this, `[individuals, SNPs]`.
+###
 
-Let's display the genotypes for the first 3 individuals and the first 6 loci. After running the below code, try showing the first 5 individuals and first 10 loci.
+Whoops I forgot, these data have been modified for educational purposes. Just remember you should expect a lot more SNPs, which also means longer analysis times. Let's see what we can do with the SNPs we have.
+
+###
+
+To get a better understanding of how the SNP data are stored we can use `as.matrix()` to see the actual state of the SNPs for each individual. 
+
+###
+
+To make it a little easier to visualize lets look at a subset of individuals and SNPs, we use square brackets for this, `[individuals, SNPs]`. Let's display the genotypes for the first 20 individuals and the first 3 loci. 
 
 ```{r eval=FALSE}
-as.matrix(gl)[1:5,1:4]
+as.matrix(gl)[1:20,1:3]
 
 ```
 
 ###
 
 ```{r exthree9, echo = FALSE}
-as.matrix(gl)[1:5,1:4]
+as.matrix(gl)[1:20,1:3]
 
 ```
 
 ###
 
-Well I am glad we could look at more individuals and loci, there is not much variation in the first three individuals and first six loci, they are either coded as 0, which indicates a homozygote for the reference allele, or NA for missing. 
+There is not much variation in the first two loci, they are either coded as 0, which indicates a homozygote for the reference allele, or NA for missing. Loci three has more diversity, with homozygotes for both the reference (0) and alternative (2) alleles as well as a few heterozygotes (1).
 
-When we look at more loci, we can see that loci ten has way more diversity, with homozygotes for both the reference (0) and alternative (2) alleles as well as a couple of homozygotes (1).
+###
 
-There seems to be a lot more missing data in the first five loci then the next five. We can actually check this by looking at the loc metrics.
+Each of the loci have missing data but we are only seeing the first 20 individuals, how much missing data are there for each of the loci? We can actually check this by looking at the loc metrics.
 
-The locus metadata included in the dartR object are those provided as part of your Diversity Arrays Technology report. These metadata are obtained from the Diversity Arrays Technology [csv]{style="color:blue; font-family: 'Courier New';"} file when it is read in to the genlight object using `gl.read.dart()`. The locus metadata are held in an R data.frame that is associated with the SNP data as part of the dartR object.
+###
+
+The locus metadata included in the dartR object are those provided as part of your Diversity Arrays Technology report and read in using `gl.read.dart()`. The locus metadata are held in an R dataframe that is associated with the SNPs as part of the dartR object.
+
+###
 
 The loc metrics are similarly located as the ind metrics, `gl@other$loc.metrics`. Let's first look at the names of the loc metrics using `names()`.
 
@@ -472,29 +569,27 @@ names(gl@other$loc.metrics)
 
 ###
 
-There is quite a bit of information in there. We are interested in the `CallRate` column for the first ten loci. We can access columns just like with any other dataframe using `$`. We can then use `[]` to subset the first 1:10 loci. If you want you could show the first 1:5 then 6:10.
+There is quite a bit of information in there. We are interested in the first three loci's rate of missing data, i.e., call rate. Therefore, we are interested in the `CallRate` column. We can access columns just like with any other dataframe, using `$`. We can then use `[]` to subset the first 1:3 loci.
 
 ```{r eval=FALSE}
-gl@other$loc.metrics$CallRate[1:5]
-gl@other$loc.metrics$CallRate[6:10]
+gl@other$loc.metrics$CallRate[1:3]
 
 ```
 
 ###
 
 ```{r exthree11, echo = FALSE}
-gl@other$loc.metrics$CallRate[1:5]
-gl@other$loc.metrics$CallRate[6:10]
+gl@other$loc.metrics$CallRate[1:3]
 
 ```
 
 ###
 
-Do you think the first loci have more missing data?
+Which locus has the most missing data?
 
 ###
 
-Instead of just looking at the first ten, why don't we do a histogram of all our loci's missing data rate, i.e., call rate. Instead of subsetting let's use the `hist()` on the `CallRate` instead.
+Instead of just looking at the first three loci, why don't we do a histogram of all the loci's call rate. Instead of subsetting let's use `hist()` on the `CallRate` column instead.
 
 ```{r eval=FALSE}
 hist(gl@other$loc.metrics$CallRate)
@@ -510,5 +605,9 @@ hist(gl@other$loc.metrics$CallRate)
 
 ###
 
-Great work! You really must be getting to know the data by now.
+Most of the loci have a call rate close to 1! That means we should have a lot of high quality loci after filtering. 
+
+###
+
+You really must be getting to know the data by now. Let's move on to some data manipulations. 
 
