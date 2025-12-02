@@ -1,0 +1,134 @@
+---
+title: "Getting Started with dartR (ebook)" 
+author: "The dartR Team"
+date: | 
+    ![](images/dartR7.png){width=6cm}
+output:
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
+    theme: "cerulean"
+    highlight: 'monochrome'
+    css: ./css/dartR_style.css
+runtime: shiny_prerendered
+description: "Introduction to dartR - using the Canberra grassland earless dragon as an example."
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+
+#necessary to render tutorial correctly
+library(learnr) 
+library(htmltools)
+#options(repos = BiocManager::repositories())
+library(dartR.data)
+library(dartR.base)
+library(dartR.sexlinked)
+gl.set.verbosity(3)
+
+library(dartRintro) # for tutorial data
+
+```
+
+
+
+## Introduction {data-progressive=FALSE} 
+
+It is time to start working in the dartRverse! Welcome!
+
+This is your hands on introduction to [dartR](https://github.com/green-striped-gecko/dartRverse?tab=readme-ov-file#dartrverse-). The worked examples and exercises in this tutorial correspond to the [[Getting Started with dartR ebook](http://dartr.biomatix.org/dartR)]{style="color:#ff0000;"}. There are also accompanying [AI podcast summaries](https://public.3.basecamp.com/p/Dp1F2egZGXY5siDf1MPFqyyg) for all the chapters, which you should definitely check out if you are more of an auditory learner.
+
+If you can't see the left sidebar, you just need to make the tutorial panel wider.
+
+### Google group
+
+Any troubles or tribulations with coding in dartR, we have a great community that can be found on the [dartR google group](https://groups.google.com/g/dartr).
+
+### Start Over
+
+While going through the worked examples your progress will be saved, if at any point you would like to refresh the tutorial and start over, the <small>[Start Over]{style="color:#a3a3a3; font-family:'Jaldi', sans-serif;"}</small> button is located at the very bottom of the left sidebar, below the tutorial content.
+
+### Worked examples and exercises
+
+The first part of this tutorial are the worked examples, where we walk you through the process step by step. Following the worked examples you will get the chance to test your knowledge with the exercises, using real data to process datasets that have been used in scientific literature! 
+
+
+In the worked examples, we’ll walk you through how to prepare genetic data for analysis using the Canberra grassland earless dragon (Tympanocryptis lineata). These little dragons are critically endangered and now survive in just a few remaining patches of natural temperate grassland in the ACT. Refer to [ebook chapter 3](http://dartr.biomatix.org/dartR) for more details
+
+Here is a map of the remaining populations.
+
+```{r echo=FALSE}
+#devtools::install_github("r-spatial/mapview")
+#gl.map.interactive(tympo.gl)
+
+library(leaflet)
+
+m<-leaflet() %>% addCircles(lng = tympo.gl@other$latlon$lon,
+                         lat = tympo.gl@other$latlon$lat,
+                         color = c('red', 'blue','green', 'yellow')[as.numeric(tympo.gl@pop)]) %>% 
+  addTiles(urlTemplate = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+ m 
+```
+
+[<small>*Data modified for educational purposes*</small>]{style="color:grey"}
+
+
+One final note, don't forget that all aspects of the material are beneficial for learning. The ebook for being introduced to the theory and methods, the worked examples to gain experience in the application, and finally the exercises to apply everything you have learned.
+
+### Let's get started!
+
+Alright! Time to get started with your first worked example. After that head back to the ebook and be ready to work through the worked examples and exercises back here when prompted.
+
+<p>Good luck on your Pop Gen journey! 😁</p>
+
+## Worked Ex 3-1: Data Structures and I/O
+In this worked example we will be drawing upon data for the Canberra grassland earless dragon introduced earlier. You have your RStudio eBook Project and you have already set the global verbosity to 3 so as to receive full details in the output.
+
+Below we step through the analysis with you. Please copy the code, paste it or type it in the Editor Window and submit it as you go along. The output should match that provided below. Feel free to wander and explore yourself along the way.
+
+### Download raw data
+
+Let’s start by downloading the SNP data and associated metadata into your project folder.
+
+- [Report_Dtym25-13579_SNP.csv](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/Report_DTym25-13579_SNP.csv) : This is the set of SNP data for CGEDs, in 2-row format as would be supplied by Diversity Arrays Technology Pty Ltd.
+
+- [Tympo_ind_metadata.csv](http://georges.biomatix.org/storage/app/media/eBook%20Introduction%20to%20dartR/Tympo_ind_metadata.csv) : Recall that the individual metadata comprise attributes assigned to each individual.
+
+Open the file Report_Dtym25-13579_SNP.csv in Excel. This is a set of SNP data for the earless dragon in 2-row format as would be supplied by Diversity Arrays Technology Pty Ltd. There are some columns with locus metadata and some first rows with individual metadata. There are two rows for each SNP, scoring presence (1) or absence (0). These files are typically very large, and excel can cause issues with them. So once you have had a look, exit without saving.
+
+Now open the metadata file Tympo_ind_metadata.csv. This individual metadata file has two compulsory fields id and pop, and some optional fields lat, lon, sex, age, svl and weight associated with each individual. You can add whatever attributes you like to this metadata file.
+
+Again, once you are finished having a look, exit without saving.
+
+The next steps are to read the data into dartR, verify that the contents are as expected. 
+
+### Read the data into dartR
+Read the data from *Report_Dtym25-13579_SNP.csv* into a dartR object using `gl.read.dart()`. Be sure to apply the individual metrics.  
+
+```{r, eval = FALSE}
+# data
+gl <- gl.read.dart("Report_DTym25-13579_SNP.csv",
+                   ind.metafile="Tympo_metadata.csv")
+```
+
+
+```{r datainput, echo = FALSE}
+gl <- gl.read.dart("./www/Report_DTym25-13579_SNP.csv",
+                   ind.metafile = "./www/Tympo_metadata.csv")
+```
+
+You can see the log of progress. It does a lot of checks, determines if the data is 2Row or 1Row format, skips rows until it hits the SNP data, checks if essential locus metrics have been provided, adds in the ind.metrics fields, then checks for overall compliance with a dartR genlight object.
+
+These diagnostics are most useful when something goes wrong and you should read through it carefully. You should check that the correct number of individuals and loci have been read in at the very least.
+
+### Interrogate the dartR genlight object
+
+To examine the attributes of the genlight object, a good place to start is to simply type in the name of the genlight object.
+
+```{r}
+gl
+```
