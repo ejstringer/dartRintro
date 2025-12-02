@@ -2,7 +2,7 @@
 
 
 library(dartRverse)
-
+library(tidyverse)
 #load all the data
 # https://r-pkgs.org/data.html#sec-data-data-raw
 
@@ -53,6 +53,7 @@ tw2_5 <- gl.drop.ind(tw2, ind.list =  "CK1 hatchling")
 tw_final <- tw2_5
 nInd(tw_final)
 tw_final <- gl.filter.monomorphs(tw_final)
+nLoc(tw_final)
 # generic pop names -------------------------------------------------------
 
 pop(tw_final) <- factor(ifelse(grepl('West', tw_final@other$ind.metrics$pop),
@@ -130,77 +131,6 @@ tw_final@other$ind.metrics <- tw_final@other$ind.metrics[,c('id', 'pop', 'lat', 
 
 tw_final@other$ind.metrics %>% head
 
-# checks ------------------------------------------------------------------
-#gl.subsample.ind(tw_final, n = 20)
-tw_final
-
-## smearplot ---------------------------------------------------------------
-gl.smearplot(tw_final)
-
-## filter ------------------------------------------------------------------
-
-tw_final_filtered <- gl.filter.callrate(tw_final, 
-                                        threshold = 0.95,method = "loc")
-tw_final_filtered <- gl.filter.rdepth(tw_final_filtered,lower = 5, upper=50)
-tw_final_filtered <- gl.filter.callrate(tw_final_filtered, threshold = 0.95,method = "ind")
-tw_final_filtered <- gl.filter.reproducibility(tw_final_filtered)
-
-
-nInd(tw_final_filtered)
-nLoc(tw_final_filtered)
-
-gl.report.monomorphs(tw_final_filtered)
-gl.report.secondaries(tw_final_filtered)
-
-tw_final_filtered <- gl.filter.secondaries(tw_final_filtered)
-
-## pcoa --------------------------------------------------------------------
-pop(tw_final_filtered) <- tw_final_filtered@other$ind.metrics$pop
-popNames(tw_final_filtered)
-pc <- gl.pcoa(tw_final_filtered)
-gl.pcoa.plot(pc, tw_final_filtered, yaxis = 1, xaxis = 2)
-
-
-
-## diversity ---------------------------------------------------------------
-
-pop(tw_final_filtered) <- paste(tw_final_filtered@other$ind.metrics$pop,
-                                tw_final_filtered@other$ind.metrics$year,
-                                sep = '-')
-
-
-
-
-ar <- gl.report.allelerich(tw_final_filtered)
-ar$`Richness per population` %>% 
-  tidyr::separate(pop, into = c('pop', 'year'), sep = '-') %>% 
-  #  filter(popsize>1) %>% 
-  ggplot(aes(year, mean_richness, colour = pop))+
-  geom_point(aes(size = popsize))+
-  geom_smooth(method = 'lm', aes(group=pop))+
-  theme_classic()
-
-h <- gl.report.heterozygosity(tw_final_filtered)
-h %>% 
-  tidyr::separate(pop, into = c('pop', 'year'), sep = '-') %>% 
-  ggplot(aes(year, He, colour = pop))+
-  geom_point()+
-  geom_smooth(method = 'lm', aes(group = pop))+
-  theme_classic()
-
-gl.report.maf(tw_final_filtered)
-
-## structure ---------------------------------------------------------------
-
-# #gl.download.binary(software = 'structure', out.dir = getwd())
-# struct <- gl.run.structure(tw_final, k.range = 1:5,
-#                            exec = "./structure/structure.exe",noadmix = F)
-# 
-# gl.plot.structure(struct, K = 3)
-# gl.evanno(struct)
-
-
-
 # csv keep files ----------------------------------------------------------
 
 
@@ -236,16 +166,40 @@ tw_final@ind.names <- tw_final@other$ind.metrics$id
 
 new_loc_ids$id %>% duplicated %>% table
 
-keeploc <- which(loc_data$V2 %in% tw_final@other$loc.metrics$clone)
-loc_data_keep[c(1:7,keeploc),] %>% dim
+## Remove loci
+#keeploc <- which(loc_data$V2 %in% tw_final@other$loc.metrics$clone)
+locdataV1 <- data.frame(V1 = loc_data$V1) %>%  
+  mutate(v = V1,
+         v = sub('\\|F\\|0--', '_', v),
+         v = sub('\\|F\\|0-', '_', v),
+         v = gsub('>', '_', v),
+         v = gsub(':', '_', v),
+         v = sub('-', '_', v)) %>% 
+  separate(v, sep = '_', into = LETTERS[1:4]) %>% 
+  mutate(nucliotide = paste(C, D, sep = '/'),
+         locnames = paste(A, B, nucliotide, sep = '-')) %>% 
+  select(V1, locnames)
 
+keeploc <- which(locdataV1$locnames %in% tw_final@loc.names)
+
+loc_data_keep_s <-loc_data_keep[c(1:7,keeploc),]
+
+## remove duplicated ids
+dups_in_keep <- duplicated(as.vector(loc_data_keep_s[7,]))
+
+loc_data_keep_nodups <- loc_data_keep_s[,!dups_in_keep]
 # save new data
 
-write.csv(loc_data_keep[c(1:7,keeploc),],
-          './data-raw/Report_DTym25-13579_SNP_2.csv',
+(nrow(loc_data_keep_nodups)-7)/2
+nLoc(tw_final)
+
+write.csv(loc_data_keep_nodups,
+          './data-raw/Report_DTym25-13579_SNP.csv',
           row.names = F) 
 
 ## DELETE top row of file and move to extdata
+
+
 
 
 # metadata ----------------------------------------------------------------
@@ -282,27 +236,87 @@ boxplot(metaweights$weight ~ metaweights$age)
 plot(metaweights$svl, metaweights$weight, col = metaweights$age)
 summary(lm(metaweights$weight~metaweights$svl+metaweights$age))
 
-head(tw_final@other$ind.metrics)
+
 
 levels(tw_final@other$ind.metrics$pop) <- c('Googong', 'Gundaroo', 'Royalla', 'Unknown', 'Tuggeranong')
 
 pop(tw_final) <- tw_final@other$ind.metrics$pop
 tw_final@pop
-
+head(tw_final@other$ind.metrics)
 
 write.csv(tw_final@other$ind.metrics, './inst/extdata/Tympo_metadata.csv',
           row.names = F)
-
-
 
 # data --------------------------------------------------------------------
 prjdir <- getwd()
 setwd('../dartR.intro/inst/extdata/')
 
-tympo.gl <- gl.read.dart('Report_DTym25-13579_SNP_2.csv',
+tympo.gl <- gl.read.dart('Report_DTym25-13579_SNP.csv',
                          ind.metafile = 'Tympo_metadata.csv')
 tympo.gl@other$history
 usethis::use_data(tympo.gl, overwrite = TRUE)
 
 setwd(prjdir)
   
+
+# checks ------------------------------------------------------------------
+#gl.subsample.ind(tympo.gl, n = 20)
+tympo.gl
+gl.report.monomorphs(tympo.gl)
+## smearplot ---------------------------------------------------------------
+gl.smearplot(tympo.gl)
+
+## filter ------------------------------------------------------------------
+
+tympo.gl_filtered <- gl.filter.callrate(tympo.gl, 
+                                        threshold = 0.95,method = "loc")
+tympo.gl_filtered <- gl.filter.rdepth(tympo.gl_filtered,lower = 5, upper=50)
+tympo.gl_filtered <- gl.filter.callrate(tympo.gl_filtered, threshold = 0.95,method = "ind")
+tympo.gl_filtered <- gl.filter.reproducibility(tympo.gl_filtered)
+
+
+nInd(tympo.gl_filtered)
+nLoc(tympo.gl_filtered)
+
+gl.report.monomorphs(tympo.gl_filtered)
+gl.report.secondaries(tympo.gl_filtered)
+
+tympo.gl_filtered <- gl.filter.secondaries(tympo.gl_filtered)
+
+## pcoa --------------------------------------------------------------------
+pop(tympo.gl_filtered) <- tympo.gl_filtered@other$ind.metrics$pop
+popNames(tympo.gl_filtered)
+pc <- gl.pcoa(tympo.gl_filtered)
+gl.pcoa.plot(pc, tympo.gl_filtered, yaxis = 1, xaxis = 2)
+
+
+
+## diversity ---------------------------------------------------------------
+
+pop(tympo.gl_filtered) <- paste(tympo.gl_filtered@other$ind.metrics$pop,
+                                tympo.gl_filtered@other$ind.metrics$year,
+                                sep = '-')
+
+
+
+
+ar <- gl.report.allelerich(tympo.gl_filtered)
+ar$`Richness per population` %>% 
+  tidyr::separate(pop, into = c('pop', 'year'), sep = '-') %>% 
+  #  filter(popsize>1) %>% 
+  ggplot(aes(year, mean_richness, colour = pop))+
+  geom_point(aes(size = popsize))+
+  geom_smooth(method = 'lm', aes(group=pop))+
+  theme_classic()
+
+h <- gl.report.heterozygosity(tympo.gl_filtered)
+h %>% 
+  tidyr::separate(pop, into = c('pop', 'year'), sep = '-') %>% 
+  ggplot(aes(year, He, colour = pop))+
+  geom_point()+
+  geom_smooth(method = 'lm', aes(group = pop))+
+  theme_classic()
+
+
+
+
