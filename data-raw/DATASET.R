@@ -9,6 +9,8 @@ library(tidyverse)
 # load --------------------------------------------------------------------
 tympos1 <- gl.read.dart("./data-raw/SNPs_original.csv", 
                         ind.metafile = "./data-raw/GED2025_corr.csv")
+silico <- gl.read.silicodart(filename ="./data-raw/Report_DTym25-10518_10_moreOrders_SilicoDArT_1.csv",
+                             ind.metafile = './data-raw/GED2025_corr.csv')
 
 tym <- gl.filter.secondaries(tympos1)
 
@@ -116,6 +118,22 @@ tw_final@other$latlon$lon <- individuals$lon
 
 gl.map.interactive(tw_final)
 
+# new pop with unique alleles ---------------------------------------------
+
+gl.alf(tw_final) %>% filter(alf2>0, alf2 < 1) %>%  arrange(alf2) %>% head
+
+mat <- as.matrix(tw_final)
+
+which(mat[, '13662966-58-C/T'] > 0)
+
+countHet <- apply(mat, 2, function(x)  sum(x== 1, na.rm = T))
+diverseInd <- names(sort(rowSums(mat[,names(countHet[countHet==1])]==1, na.rm =T),decreasing = T)[4])
+
+tw_final@other$ind.metrics[tw_final@other$ind.metrics$id==diverseInd,]
+
+
+gl.drop.ind(tw_final,diverseInd, mono.rm=TRUE)
+
 
 # tidy metadata -----------------------------------------------------------
 
@@ -130,6 +148,29 @@ tw_final@other$ind.metrics[,c('id', 'pop', 'lat', 'lon', 'year', 'sex', 'age')] 
 tw_final@other$ind.metrics <- tw_final@other$ind.metrics[,c('id', 'pop', 'lat', 'lon', 'year', 'sex', 'age')]
 
 tw_final@other$ind.metrics %>% head
+
+tw_final@other$ind.metrics[tw_final@other$ind.metrics$id == diverseInd,]
+tw_final@other$ind.metrics[tw_final@other$ind.metrics$id == diverseInd,-1] <- NA
+tw_final@other$ind.metrics$pop[tw_final@other$ind.metrics$id == diverseInd] <- "unknown"
+tw_final@other$ind.metrics$year[tw_final@other$ind.metrics$id == diverseInd] <- "unknown"
+tw_final@other$ind.metrics[tw_final@other$ind.metrics$id == diverseInd,]
+
+
+# silico file ------------------------------------------------------------
+keepsil <- which(silico@loc.names %in% tw_final@other$loc.metrics$CloneID)
+length(keepsil)
+length(unique(c(1:4000, keepsil)))
+
+silico_loc <- gl.keep.loc(silico, silico@loc.names[unique(c(1:4000, keepsil))])
+silico_locind <- gl.keep.ind(silico_loc, ind.list = tw_final@ind.names)
+
+popid <- tw_final@other$ind.metrics[,c('id', 'pop')] %>% 
+  rename(popSNP= pop)
+
+silico_locind@other$ind.metrics <-silico_locind@other$ind.metrics %>% 
+  left_join(popid)
+
+
 
 # csv keep files ----------------------------------------------------------
 
@@ -193,13 +234,65 @@ loc_data_keep_nodups <- loc_data_keep_s[,!dups_in_keep]
 (nrow(loc_data_keep_nodups)-7)/2
 nLoc(tw_final)
 
-write.csv(loc_data_keep_nodups,
-          './data-raw/Report_DTym25-13579_SNP.csv',
-          row.names = F) 
+# write.csv(loc_data_keep_nodups,
+#           './data-raw/Report_DTym25-13579_SNP.csv',
+#           row.names = F) 
+# 
+# ## DELETE top row of file and move to extdata
 
-## DELETE top row of file and move to extdata
+write.table(loc_data_keep_nodups,
+          './inst/extdata/Report_DTym25-13579_SNP.csv', sep = ',',
+          row.names = F, col.names = F) 
 
 
+# csv keep silico  --------------------------------------------------------
+
+loc_data <- read.csv('./data-raw/Report_DTym25-10518_10_moreOrders_SilicoDArT_1.csv',
+                     header = F)
+table(loc_data$V1 %in% silico_locind@other$loc.metrics$CloneID)
+## ids are in row 7
+loc_data[1:9, 30:40]
+row6 <- loc_data[7,]
+
+## find which column ids start
+locmet <- which(row6 == 'Reproducibility')
+indkeep <- which(row6 %in% silico_locind@ind.names) 
+
+loc_data_keep <- loc_data[,c(1:locmet, indkeep)]
+
+# dataframe to get new ids in same order as SNP csv
+
+new_loc_ids
+
+new_loc_ids[new_loc_ids$id %in% new_loc_ids$id[duplicated(new_loc_ids$id)],]
+# assign new ids
+table(loc_data_keep[7,-c(1:locmet)]==new_loc_ids$id)
+loc_data_keep[7,-c(1:locmet)] <- new_loc_ids$id2
+
+
+new_loc_ids$id %>% duplicated %>% table
+
+## Remove loci
+keeploc <- which(loc_data$V1 %in% silico_locind@loc.names)
+
+
+#keeploc <- which(locdataV1$locnames %in% tw_final@loc.names)
+
+loc_data_keep_s <-loc_data_keep[c(1:7,keeploc),]
+
+## remove duplicated ids
+dups_in_keep <- duplicated(as.vector(loc_data_keep_s[7,]))
+
+loc_data_keep_nodups <- loc_data_keep_s[,!dups_in_keep]
+# save new data
+
+#(nrow(loc_data_keep_nodups)-7)/2
+nLoc(silico_locind)
+
+
+write.table(loc_data_keep_nodups,
+            './inst/extdata/Report_DTym25-13579_SilicoDArT.csv', sep = ',',
+            row.names = F, col.names = F) 
 
 
 # metadata ----------------------------------------------------------------
@@ -223,7 +316,8 @@ metaweights <- tw_final@other$ind.metrics %>%
   mutate(svl = runif(1, min = svlmin, max = svlmax),
          weight = rnorm(1, mweight, 0.5)) %>% 
   mutate(svl = ifelse(is.nan(svl),NA, svl),
-         weight = ifelse(weight < 1, 1.13, weight))
+         weight = ifelse(weight < 1, 1.13, weight),
+         weight = (svl*0.01+1)*weight)
 
 tw_final@other$ind.metrics$svl = round(metaweights$svl,1)
 tw_final@other$ind.metrics$weight = round(metaweights$weight,2)
@@ -238,11 +332,12 @@ summary(lm(metaweights$weight~metaweights$svl+metaweights$age))
 
 
 
-levels(tw_final@other$ind.metrics$pop) <- c('Googong', 'Gundaroo', 'Royalla', 'Unknown', 'Tuggeranong')
+levels(tw_final@other$ind.metrics$pop) <- c('Googong', 'Kowen', 'Royalla', 'Unknown', 'Tuggeranong')
 
 pop(tw_final) <- tw_final@other$ind.metrics$pop
 tw_final@pop
 head(tw_final@other$ind.metrics)
+table(tw_final@pop)
 
 write.csv(tw_final@other$ind.metrics, './inst/extdata/Tympo_metadata.csv',
           row.names = F)
@@ -255,6 +350,12 @@ tympo.gl <- gl.read.dart('Report_DTym25-13579_SNP.csv',
                          ind.metafile = 'Tympo_metadata.csv')
 tympo.gl@other$history
 usethis::use_data(tympo.gl, overwrite = TRUE)
+
+
+# test silico
+
+tympo.silico <- gl.read.silicodart('Report_DTym25-13579_SilicoDArT.csv',
+                             ind.metafile = 'Tympo_metadata.csv')
 
 setwd(prjdir)
   
@@ -287,8 +388,38 @@ tympo.gl_filtered <- gl.filter.secondaries(tympo.gl_filtered)
 pop(tympo.gl_filtered) <- tympo.gl_filtered@other$ind.metrics$pop
 popNames(tympo.gl_filtered)
 pc <- gl.pcoa(tympo.gl_filtered)
-gl.pcoa.plot(pc, tympo.gl_filtered, yaxis = 1, xaxis = 2)
+gl.pcoa.plot(pc, tympo.gl_filtered, yaxis = 2, xaxis = 1)
 
+
+
+# drop and reassign -------------------------------------------------------
+
+
+pcdf <- pc$scores %>% as.data.frame() %>% 
+  mutate(id = rownames(.)) %>% 
+  left_join(tympo.gl_filtered@other$ind.metrics[1:2])
+
+### find inds to delete and inds to reassign. 
+
+## to delete: 
+
+pcdf %>% 
+  filter(PC1 < -1, PC2 <1,
+         pop != 'Tuggeranong') #AA24149
+
+pcdf %>% 
+  filter(PC1 > -1, PC2 <1, 
+         pop != 'Googong', pop != 'Royalla') #AA24002 AA24001
+
+## reassign
+
+pcdf %>% 
+  filter(PC1 > 1, PC2 >1, 
+         pop != 'Kowen') # AA24117 AA24155 AA24250 AA24545
+
+
+
+tympo_filtered <- gl.reassign.pop()
 
 
 ## diversity ---------------------------------------------------------------
@@ -317,6 +448,22 @@ h %>%
   geom_smooth(method = 'lm', aes(group = pop))+
   theme_classic()
 
+###
 
 
+# silico ------------------------------------------------------------------
+
+
+
+silico_locind_filt <- gl.filter.callrate(tympo.silico, threshold = 0.95,method = "loc")
+silico_locind_filt <- gl.filter.rdepth(silico_locind_filt,lower = 5, upper=50)
+silico_locind_filt <- gl.filter.callrate(silico_locind_filt, threshold = 0.95,method = "ind")
+silico_locind_filt <- gl.filter.reproducibility(silico_locind_filt)
+
+
+silico_locind_filt@pop %>% table
+
+
+pcsil <- gl.pcoa(silico_locind_filt)
+gl.pcoa.plot(pcsil, silico_locind_filt, yaxis = 2, xaxis = 1)
 
