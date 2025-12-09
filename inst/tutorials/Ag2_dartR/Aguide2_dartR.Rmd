@@ -31,61 +31,50 @@ library(dartR.sexlinked)
 gl.set.verbosity(3)
 
 library(dartRintro) # for tutorial data
+source('./www/reassign_ind_function.R')
 
 ```
 
 
 
-## Introduction {data-progressive=FALSE} 
+## Main menu {#custom data-progressive="FALSE"}
 
 It is time to start working in the dartRverse! Welcome!
 
 This is your hands on introduction to [dartR](https://github.com/green-striped-gecko/dartRverse?tab=readme-ov-file#dartrverse-). The worked examples and exercises in this tutorial correspond to the [[Getting Started with dartR ebook](http://dartr.biomatix.org/dartR)]{style="color:#ff0000;"}. There are also accompanying [AI podcast summaries](https://public.3.basecamp.com/p/Dp1F2egZGXY5siDf1MPFqyyg) for all the chapters, which you should definitely check out if you are more of an auditory learner.
 
-If you can't see the left sidebar, you just need to make the tutorial panel wider.
+
+
+### Worked examples and exercises 
+
+The first part of this tutorial are the worked examples, where we walk you through the process step by step. Following the worked examples you will get the chance to test your knowledge with the exercises, using real data to process datasets that have been used in scientific literature! 
+
+**List of worked examples**
+
+- [Worked Ex 3-1: Data Structures and I/O]
+
+- [Worked Example 4-1: Basic Attributes and QC]
+
+- [Worked Example 5-1: Filtering]
+
+Don't forget that all aspects of the material are beneficial for learning. The ebook for being introduced to the theory and methods, the worked examples to gain experience in the application, and finally the exercises to apply everything you have learned.
+
+<small>If you can't see the left sidebar, you just need to make the tutorial panel wider.</small>
 
 ### Google group
 
 Any troubles or tribulations with coding in dartR, we have a great community that can be found on the [dartR google group](https://groups.google.com/g/dartr).
 
-### Start Over
-
-While going through the worked examples your progress will be saved, if at any point you would like to refresh the tutorial and start over, the <small>[Start Over]{style="color:#a3a3a3; font-family:'Jaldi', sans-serif;"}</small> button is located at the very bottom of the left sidebar, below the tutorial content.
-
-### Worked examples and exercises
-
-The first part of this tutorial are the worked examples, where we walk you through the process step by step. Following the worked examples you will get the chance to test your knowledge with the exercises, using real data to process datasets that have been used in scientific literature! 
-
-
-In the worked examples, we’ll walk you through how to prepare genetic data for analysis using the Canberra grassland earless dragon (Tympanocryptis lineata). These little dragons are critically endangered and now survive in just a few remaining patches of natural temperate grassland in the ACT. Refer to [ebook chapter 3](http://dartr.biomatix.org/dartR) for more details
-
-Here is a map of the remaining populations.
-
-```{r echo=FALSE}
-#devtools::install_github("r-spatial/mapview")
-#gl.map.interactive(tympo.gl)
-
-library(leaflet)
-
-m<-leaflet() %>% addCircles(lng = tympo.gl@other$latlon$lon,
-                         lat = tympo.gl@other$latlon$lat,
-                         color = c('red', 'blue','green', 'yellow')[as.numeric(tympo.gl@pop)]) %>% 
-  addTiles(urlTemplate = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
- m 
-```
-
-[<small>*Data modified for educational purposes*</small>]{style="color:grey"}
-
-
-One final note, don't forget that all aspects of the material are beneficial for learning. The ebook for being introduced to the theory and methods, the worked examples to gain experience in the application, and finally the exercises to apply everything you have learned.
-
-### Let's get started!
+### Let's get started! 
 
 Alright! Time to get started with your first worked example. After that head back to the ebook and be ready to work through the worked examples and exercises back here when prompted.
 
 <p>Good luck on your Pop Gen journey! 😁</p>
 
-## Worked Ex 3-1: Data Structures and I/O
+
+
+
+## Worked Ex 3-1: Data Structures and I/O {data-progressive="FALSE"}
 In this worked example we will be drawing upon data for the Canberra grassland earless dragon introduced earlier. You have your RStudio eBook Project and you have already set the global verbosity to 3 so as to receive full details in the output.
 
 Below we step through the analysis with you. Please copy the code, paste it or type it in the Editor Window and submit it as you go along. The output should match that provided below. Feel free to wander and explore yourself along the way.
@@ -116,9 +105,15 @@ gl <- gl.read.dart("Report_DTym25-13579_SNP.csv",
 ```
 
 
-```{r datainput, echo = FALSE}
-gl <- gl.read.dart("./www/Report_DTym25-13579_SNP.csv",
-                   ind.metafile = "./www/Tympo_metadata.csv")
+```{r datainput, echo = FALSE, cache=TRUE}
+prj <- getwd()
+setwd('./www/')
+
+gl <- gl.read.dart("Report_DTym25-13579_SNP.csv",
+                   ind.metafile = "Tympo_metadata.csv")
+
+setwd(prj)
+
 ```
 
 You can see the log of progress. It does a lot of checks, determines if the data is 2Row or 1Row format, skips rows until it hits the SNP data, checks if essential locus metrics have been provided, adds in the ind.metrics fields, then checks for overall compliance with a dartR genlight object.
@@ -132,3 +127,564 @@ To examine the attributes of the genlight object, a good place to start is to si
 ```{r}
 gl
 ```
+
+This tells us the size of the genlight object, the number of genotypes (individuals) and the number of SNPs (loci). It identifies important "slots" such as `@pop`, `@other$loc.metrics` which contains the locus metrics like AlleleID, AvgPIC, RepAvg etc, and `@other$ind.metrics` which contains the individual metrics like id, pop, sex, age etc. Note also that the ind.metrics contains the service and plate location of the individual sample.
+
+All useful stuff for later analyses.
+
+Adegenet accessors are useful for interrogating specific values.
+
+
+```{r}
+nInd(gl)
+nLoc(gl)
+nPop(gl)
+```
+
+and you can check the population and individual names
+
+```{r}
+popNames(gl)
+# Only first 20 entries shown
+indNames(gl)[1:20]
+```
+
+We saw that we had a number of individual metrics when we examined the contents of the `gl` object by simply typing its name. We can remind ourselves of these:
+
+```{r}
+names(gl@other$ind.metrics)
+```
+
+Examine the contents of the individual metrics, in this case the first 10 values of the attribute "sex":
+
+```{r}
+# Only first 10 entries shown
+gl@other$ind.metrics$sex[1:10]
+```
+
+Try this on some other locus metrics.
+
+To examine the SNP genotypes themselves, use
+
+```{r}
+# Only the first 7 individuals for the first 10 loci are shown
+mat <- as.matrix(gl)
+mat[1:7,1:8]
+```
+
+Note whether you see all acceptable values, that is, 0, 1 or 2 and NA. If you see more values 1 than 2, why do you think this might be so?
+
+### Save {#idsave}
+
+Next, save the data in binary format for posterity. It is much faster to load the data from a compact binary file than by running `gl.read.dart()` again.
+
+```{r eval = FALSE}
+gl.save(gl,"Tympo_SNP_raw.RData")
+```
+
+```{r echo = FALSE}
+setwd('./www/')
+gl.save(gl,"Tympo_SNP_raw.RData")
+```
+
+Read it in again using:
+
+```{r eval = FALSE}
+gl.new <- gl.load("Tympo_SNP_raw.RData")
+```
+
+```{r echo = FALSE}
+setwd('./www/')
+gl.new <- gl.load("Tympo_SNP_raw.RData")
+```
+
+
+```{r echo = FALSE}
+setwd(prj)
+```
+
+### Clean up
+We have created files that we will not use again, so they should be removed from the workspace. Tidy up your workspace by removing the dartR genlight object `gl` and `gl.new`, assuming you do not want to access them again in raw form.
+
+```{r}
+rm(gl.new, gl)
+
+```
+
+That brings us to the end of the worked example. You are now a pro.
+
+
+
+[Back to Menu](#custom){.menuButton}
+
+
+## Worked Ex 4-1: Basic Attributes and QC 
+###
+This worked example will take you by the hand and lead you through the analyses covered so far in Chapter 4. We again consider the dataset introduced in Chapter 3, that of the Canberra Grassland Earless Dragon, *Tympanocryptis lineata*.
+
+In Worked Ex 3-1, you would have saved the data in binary form in [Tympo_SNP_raw.RData.]{style="color:green;"} This file should be in your project directory Book_Project. If it is not, you will need to go back to Worked Ex 3-1 and regenerate this binary file.
+
+Below we step through the analysis with you. Please copy the code, paste it or type it in the Editor Window and submit it as you go along. The output should match that provided below. Feel free to wander and explore yourself along the way.
+
+### Examine Dataset Attributes
+
+First, load in the dataset using
+
+```{r eval = FALSE}
+gl <- gl.load("Tympo_SNP_raw.RData")
+```
+
+```{r echo = FALSE}
+setwd('./www/')
+gl <- gl.load("Tympo_SNP_raw.RData")
+```
+
+
+```{r echo = FALSE}
+setwd(prj)
+```
+
+Quickly examine the contents of your dartR genlight object by simply typing its name. This will give you the attributes associated with the object. Then lets engage in a little revision of material covered in Worked Ex 3-1.
+
+
+```{r}
+gl
+```
+
+Note: If it is a SNP dataset, the ploidy of each individual will be reported as (range 2-2). If it is a SilicoDArT dataset, the ploidy will be reported as (range: 1-1)
+
+Displayed are the number of genotypes (individuals/specimens/samples), the size of the genlight object, and the number of missing values. The ploidy value should be 2-2 for SNP data for a diploid organism (dartR does not have support for polyploid organisms), so if it is something else, you have a problem with your data. SilicoDArT presence absence data has the ploidy set to 1-1.
+
+Slots containing important information are listed, such as `@position`, which lists the position of the SNPs in the sequence tags (referenced from 0 as position 1). The `@other` slot is particularly important, because it holds the `loc.metrics` from Diversity Arrays Technology Pty Ltd (DArT) and your `ind.metrics`. 
+
+If any of the optional content slots indicated above are missing, consider running
+
+```{r}
+gl <- gl.compliance.check(gl)
+```
+
+which will render the dartR genlight object compliant with dartR. This is particularly important if you have generated your data outside the DArT environment.
+
+To obtain a basic summary for a dartR genlight object, use
+
+```{r}
+gl.report.basics(gl)
+```
+
+This is a very comprehensive summary of the dataset.
+
+To access metadata directly you can use commands of the form
+
+```{r}
+cr <- gl@other$loc.metrics$CallRate
+hist(cr) # This is a base R statement
+
+```
+
+Remind yourself of the variables in the metadata using 
+
+```{r}
+names(gl@other$loc.metrics)
+```
+
+and
+
+```{r}
+names(gl@other$ind.metrics)
+```
+
+
+Play around a little more, examining different individual and locus metrics that interest you.
+
+You can also interrogate the genlight object using adegenet accessors, that is, commands built into the **adegenet** package. Give each of these a try.
+
+```{r eval = FALSE}
+nLoc(gl) 
+locNames(gl)
+nInd(gl)
+indNames(gl)
+nPop(gl)
+popNames(gl)
+pop(gl)
+```
+
+Note the distinction between `popNames(gl)` and `pop(gl)`. The two are related by `popNames(gl) = unique(pop(gl))`.
+
+To convert your dartR genlight object to a conventional matrix, use
+
+```{r}
+m <- as.matrix(gl)
+m[1:5,1:8]
+```
+
+These are all useful for interrogating your genlight object, and of course can be used in your r scripts to subset and manipulate your data.
+
+### Core report functions
+
+Now try the core report functions. In each case, think about what threshold you might define to discard loci or individuals with poor quality (QC control). 
+
+*Important Note*: Do not assign the output of the report function to your genlight object or you will overwrite your dartR genlight object.
+
+This **Call Rate** function summarises CallRate values for loci.  A locus can fail to call for an individual because the sequence tag was missed during sequencing (if a service with low read depth) or because of a mutation at one or both of the restriction enzyme sites or internal to the sequence tag. Matched with `gl.filter.callrate()` (refer Chapter 5). For further help, type `?gl.report.callrate` and then craft some statements
+
+```{r}
+gl.report.callrate (gl, method="loc")
+```
+
+The Call Rate function with method=”ind” summarises Call Rate values for individuals. 
+
+```{r}
+gl.report.callrate(gl, method="ind")
+```
+
+The **reproducibility** function below summarises repAvg (SNP) or reproducibility (SilicoDArT) values for each locus. DArT runs technical replicates that allow for an assessment of the reliability of the scoring for each locus. 100% means that identical results were obtained for both technical replicates.
+
+```{r}
+gl.report.reproducibility(gl)
+```
+
+The **read depth** function reports an estimate of average read depth for each locus. Adequate read depth is desirable for analyses requiring accurate calls of heterozygotes in particular. Matched with `gl.filter.rdepth()` (refer Chapter 5). For further help, type `?gl.report.rdepth` and to use the function, type
+
+```{r}
+gl.report.rdepth(gl)
+```
+
+Linkage is an important consideration for many analyses. Fortunately, SNPs on separate sequence tags can be considered to assort independently because of the sparse nature of their sampling across the genome. However, if two SNPs occur in a non-recombining block of sequence, they will be co-inherited. This occurs for SNPs that reside in the non-recombining region of the sex chromosomes. They are referred to as sex-linked. The sex linkage report function identifies putative sex-linked SNP loci. Matched with `gl.filter.sexlinked()` (refer Chapter 5). For further help, type `?gl.report.sexlinked`
+
+```{r message=TRUE, cache=TRUE}
+gl.report.sexlinked(gl, system = 'xy')
+```
+
+Sequence tags can often contain more than one SNP, potentially up to 7 SNPs in a sequence tag of 69 bp. Alleles at these SNP loci are potentially co-inherited and so are linked. The **secondaries** function identifies and counts the number of SNP loci in each sequence tag. It has the added feature of modelling the frequency distribution of SNP locus counts and estimating the zero class, that is, the number of (unreported) sequence tags that are invariant. This can be useful for correcting some estimates, such as heterozygosity. Matched to `gl.filter.secondaries()`. For further help, type `?gl.report.secondaries`.
+
+```{r}
+gl.report.secondaries(gl)
+```
+
+The **monomorphs** report function provides a count of polymorphic and monomorphic loci. Matched with gl.filter.monomorphs()(refer Chapter 5). For further help, type ?gl.report.monomorphs. Many functions also have a mono.rm option which, if TRUE, filters monomorphic loci.
+
+```{r}
+gl.report.monomorphs(gl)
+```
+
+### Other report functions
+
+**Hamming Distance** is a measure of how similar two sequence tags are. There is a risk that two very similar sequence tags are from the same locus distinguished only by the rare read error. Sequence tags produced by DArT have already been filtered by Hamming Distance (typically threshold 3 bp) but you might choose to be more stringent. This report function will give you an indication of whether you have an issue to resolve or not. Matched with `gl.filter.hamming()` (refer Chapter 5). For further help, type `?gl.report.hamming`.
+
+```{r eval = FALSE}
+gl.report.hamming(gl) # takes too long or is broken
+```
+
+**Tag lengths** (each bearing one or more SNPs) can vary substantially, typically from 20bp to 69 bp in the case of DArT data. The tag length script reports a frequency tabulation of sequence tag lengths. Matched with `gl.filter.taglength()` (refer Chapter 5). For further help, type `?gl.report.taglength`.
+
+```{r}
+gl.report.taglength(gl)
+```
+
+The **overshoot** report deals with a rare anomaly. Occasionally the adaptor sequence has close sequence homology with part of the sequence tag. When this occurs part of the sequence tag is eliminated and sometimes this carries the SNP with it. This function reports loci for which the SNP has been trimmed along with the adaptor sequence. Matched with `gl.filter.overshoot()` (refer Chapter 5). For further help, type `?gl.report.overshoot`.
+
+```{r}
+gl.report.overshoot(gl)
+```
+
+
+### Finishing up
+
+At this point you should have a good grasp on how to interrogate your dataset using the dartR report functions. 
+
+You can now return to Chapter 4 of the eBook and move to manipulating the contents of a SNP or SilicoDArT dataset, or move to the Exercises for Chapter 4 and try Exercises 4-1 and 4-2.
+
+
+[Back to Menu](#custom){.menuButton}
+
+## Worked Ex 4-2: Manipulating data
+
+This worked example will take you by the hand and lead you through the analyses for dropping populations, merging and renaming populations, reassigning populations, and subsampling populations. We will work again with the real dataset on the Canberra grassland earless dragon introduced in Chapter 3. 
+
+If you have moved directly from Worked Example 4-1, you will have already loaded the data into genlight object `gl`. If you have been away and are just coming back, you should load the data in again using
+
+```{r eval = FALSE}
+gl <- gl.load("Tympo_SNP_raw.RData")
+```
+
+```{r echo = FALSE}
+setwd('./www/')
+gl <- gl.load("Tympo_SNP_raw.RData")
+```
+
+
+```{r echo = FALSE}
+setwd(prj)
+```
+
+Check to see what populations object `gl` has defined.
+
+```{r}
+popNames(gl)
+```
+
+Now check the sample sizes.
+
+
+```{r}
+table(pop(gl))
+```
+
+
+### Dropping Populations
+
+We make the decision to delete the populations that has only a single sample from an unknown population.
+
+```{r}
+gl <- gl.drop.pop(gl, pop.list=c('Unknown'))
+```
+The output confirms that the two populations have been deleted, but also issues a warning that monomorphic loci may have arisen with the deletion of the two populations. If this is undesirable, one could have run the above command with the parameter `mono.rm=TRUE`. However, we did not use this option, so we can remove monomorphic loci now:
+
+```{r}
+gl <- gl.filter.monomorphs(gl)
+```
+
+
+
+
+How many monomorphic loci were detected, and if any, deleted. 
+See also `gl.keep.pop()` which allows you to specify populations to keep rather than populations to delete.
+
+### Merging and Renaming Populations
+
+Two populations from South Canberra (Royalla, Googong) can be merged into one population (Googong Region):
+
+```{r}
+gl <- gl.merge.pop(gl, old=c("Royalla", "Googong"), new="Royalla/Googong")
+```
+
+Populations can also be renamed.
+
+```{r}
+gl <- gl.rename.pop(gl,old="Royalla/Googong",new="NSW")
+```
+
+These functions do not change the underlying `ind.metrics`. In case we want to change population assignment momentarily, let's save the new population assignments as a column in `ind.metrics`. Use `head()` to check it has been saved as a new column. 
+
+```{r}
+gl@other$ind.metrics$pop2 <- gl@pop
+head(gl@other$ind.metrics)
+```
+
+
+### Reassigning a population using an ind metric 
+
+The year can be temporarily assigned as the `pop` variable using
+
+```{r}
+gl <- gl.reassign.pop(gl, as.pop="year")
+```
+
+This will the existing population assignments with values of the individual metric year of capture. Confirm this using
+
+```{r}
+popNames(gl)
+```
+
+Some functions allow the temporary assignment of an individual metric as the population attribute. For example,
+
+```{r}
+gl <- gl.drop.pop(gl, pop.list="2006", as.pop="year")
+```
+
+Confirm that the metrics for `year` no longer contain `2006`.
+
+```{r}
+table(gl@other$ind.metrics$year)
+```
+
+
+### Bulk population reassignment or deletion (Recode Tables)
+
+To bulk reassign populations or delete populations, a recode table must first be constructed. 
+
+```{r, eval=FALSE}
+gl.make.recode.pop(gl, out.recode.file = "my_recode_pop_table.csv",outpath = getwd())
+```
+
+Open the file [my_recode_pop_table.csv]{style="color:green;"} and edit the second column to make some new population labels to replace the old, and to delete some populations. Save the csv file, then apply it to create a new modified dartR genlight object.
+
+
+```{r eval = FALSE}
+gl.new <- gl.recode.pop(gl, pop.recode = "my_recode_pop_table.csv")
+```
+
+
+```{r echo=FALSE}
+# gl.new <- gl.drop.pop(gl, pop.list = c(2017, 2024))
+# gl.new <- gl.merge.pop(gl.new, old = c(2011, 2012), new = c('2011/2012'))
+gl.new <- gl
+```
+
+
+```{r}
+popNames(gl)
+popNames(gl.new)
+```
+
+Delete gl.new as it is no longer needed.
+
+```{r}
+rm(gl.new)
+```
+
+
+### Deleting Individuals
+
+Deleting individuals is essentially done in the same way as deleting populations.
+
+```{r}
+indNames(gl)
+```
+
+Three individuals have been misclassified and their provenance is uncertain. We need to remove these. Again, monomorphic loci can arise with the deletion of populations or individuals, so we apply the `mono.rm=TRUE` parameter.
+
+```{r}
+gl <- gl.drop.ind(gl,c("AA24149", "AA24002", "AA24001"), mono.rm=TRUE)
+```
+
+Note that no monomorphic loci were created by the removal of these individuals. Also note that had the three individuals been the sole individuals in a population, then that population assignment would have been removed also. In this case, all populations were retained.
+
+See also `gl.keep.ind()` which allows you to specify individuals to keep rather than individuals to delete.
+
+### Subsampling Individuals
+
+To subsample individuals in a genlight object containing SNP or SilicoDArT data, use 
+
+
+```{r}
+gl2 <- gl.subsample.ind(gl, n=50, replace=FALSE)
+```
+
+To subsample individuals within populations, use the `by.pop` parameter
+
+```{r}
+gl2 <- gl.subsample.ind(gl, n=5, by.pop=TRUE, replace=FALSE)
+```
+
+Setting the replacement parameter to `TRUE` will subsample with replacement, so an individual could conceivably be included twice in the new dataset.
+
+### Reassigning individuals
+
+Reassign population to `pop2`, which we saved earlier. 
+
+```{r}
+gl <- gl.reassign.pop(gl, as.pop = "pop2")
+```
+
+All individuals are typically assigned to populations when the data are input. This information is in the *ind.metadata.csv* file used on input using `gl.read.dart()`. Sometimes it is necessary to reassign individuals to existing populations or to assign them to new populations.
+
+```{r}
+gl2 <- gl.reassign.ind(gl, 
+                       ind.list=c("AA24117", "AA24155", "AA24250", "AA24545"),
+                       new.pop="Kowen")
+```
+
+### Working with Loci
+
+There are functions to delete and keep loci that work in a similar way to the companion functions for individuals and populations. They are rarely used, but might be useful for removing a few loci that are regarded as recalcitrant in ways that are not picked up by the conventional filtering (see Chapter 5).
+
+To subsample loci in a genlight object containing SNP or SilicoDArT data, use 
+
+```{r}
+gl2 <- gl.subsample.loc(gl, n=1000, replace = FALSE)
+```
+
+Note that the default for the `replace` parameter is `FALSE` for `gl.subsample.ind()` and `TRUE` for `gl.subsample.loc()`. Best to be explicit.
+
+Subsampling loci might be of use for bootstrapping (`replace=TRUE`) or when trying out a complex script with a smaller subset of data (`replace=FALSE`). 
+
+### Tidy up the workspace
+
+We have created files that we will not use again, so they should be removed from the workspace. Check the list under the tab Environment, and use `rm()` to remove objects that will not be of further use, such as `gl2`.
+
+[Back to Menu](#custom){.menuButton}
+
+## Worked Ex 5-1: Filtering
+
+This worked example will take you by the hand and lead you through the analyses for filtering loci and individuals based on specified thresholds. Those thresholds are typically determined using the report functions introduced in Chapter 3, though often the default values will suffice. We will work again with the real dataset on the Canberra grassland earless dragon introduced in Chapter 3. 
+
+In Worked Ex 3-1, you would have saved the data in binary form in [Tympo_SNP_raw.RData]{style="color:green;"}. This file should be in your project directory Book_Project. If it is not, you will need to go back to Chapter 3 and regenerate this binary file.
+
+Do not forget to set global verbosity to 3, `gl.set.verbosity(3)`.
+
+Below we step through the analysis with you. Please copy the code, paste it or type it in the Editor Window and submit it as you go along. The output should match that provided below. Feel free to wander and explore yourself along the way.
+
+### Load the Dataset
+
+First, load in the dataset using
+```{r eval = FALSE}
+gl <- gl.load("Tympo_SNP_raw.RData")
+```
+
+```{r echo = FALSE}
+setwd('./www/')
+gl <- gl.load("Tympo_SNP_raw.RData")
+```
+
+
+```{r echo = FALSE}
+setwd(prj)
+```
+
+Quickly examine the contents of your genlight object. 
+
+
+```{r}
+nInd(gl)
+nLoc(gl)
+nPop(gl)
+table(pop(gl))
+```
+
+If all is well, proceed to filtering. Note that the order in which filtering is undertaken is complex, and depends very much on the context and the analyses to follow. Refer to the section on nuances in Chapter 5 of the eBook. The order given in what follows is arbitrary.
+
+### Filtering Loci on Call Rate
+
+A filter for Call Rate can be applied to loci and to individuals. When filtering on loci, only those for which the associated SNP is called in at least a specified proportion will be retained. When filtering on individuals, only those individuals for which a specified percentage of loci are scored for a SNP polymorphism will be retained. 
+
+Recall that Call Rate for SNPs can arise from two sources. The first source is where a missing value arises because the sequence tag bearing the target SNP cannot be amplified – there has been a mutation at one or both of the restriction sites. The second source of missing values is where the read depth is insufficient to make a reliable call on the SNP. Either way, the SNP is not called and is recorded as NA. 
+
+For presence-absence data (i.e. SilicoDArT), the sequence tag is recorded as having been amplified (presence) or not (absence). A missing value arises when it is not possible to determine if the sequence tag has been amplified or not, so in that sense it is true missing data.
+
+A first step in filtering on Call Rate is to examine the distribution of Call Rates across loci. We use
+
+```{r}
+gl.report.callrate(gl)
+```
+
+Here you can see that the call rate for most loci is close to 100%, but that there is a tail of loci for which the call rate is exceptionally poor. In this case, we might choose to filter out loci for which the call rate is less than 95% (0.95). 
+
+
+```{r}
+gl <- gl.filter.callrate(gl, threshold=0.95)
+```
+
+can see from the text that filtering at a threshold of 0.95 will result in the loss of 3,541 loci, or 64% of loci. Substantial data loss, but for most purposes, this level of filtering of poorly called loci is likely to be satisfactory. The results of the filtering are shown as a before-after plot.
+
+### Filtering Individuals on Call Rate
+
+A second way of filtering on Call Rate is to remove individuals that have sequenced particularly poorly. This may occur if the associated samples are degraded in comparison with other samples. We again first report the Call Rate, this time for individuals.
+
+```{r}
+gl.report.callrate(gl, method='ind')
+```
+
+The output includes a list of populations and the Call Rate averaged across individuals, and a list of the top worst individuals in terms of their call rate. This will allow you to make a reasoned judgement on the impact of filtering out individuals.
+
+It appears there are a number of individuals with poor call rates. This could arise because of poor sample quality or because of particular attributes of the genomes of those individuals (true null alleles). The judgement needed here is to determine how valuable these individuals are to the analyses to follow, and to decide a threshold that does not eliminate key individuals or populations. A threshold of 0.7 would be indicated here.
+
+The graph tells the story. In the absence of information to the contrary, a threshold of 70% (0.70) would seem appropriate for filtering individuals on Call Rate.
+
+We execute the filter with a threshold of 0.70.
+
+[Back to Menu](#custom){.menuButton}
+
+
+
+

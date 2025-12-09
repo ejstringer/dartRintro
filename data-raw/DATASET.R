@@ -159,7 +159,7 @@ tw_final@other$ind.metrics[tw_final@other$ind.metrics$id == diverseInd,]
 # silico file ------------------------------------------------------------
 keepsil <- which(silico@loc.names %in% tw_final@other$loc.metrics$CloneID)
 length(keepsil)
-length(unique(c(1:4000, keepsil)))
+length(unique(c(1:4010, keepsil)))
 
 silico_loc <- gl.keep.loc(silico, silico@loc.names[unique(c(1:4000, keepsil))])
 silico_locind <- gl.keep.ind(silico_loc, ind.list = tw_final@ind.names)
@@ -170,7 +170,7 @@ popid <- tw_final@other$ind.metrics[,c('id', 'pop')] %>%
 silico_locind@other$ind.metrics <-silico_locind@other$ind.metrics %>% 
   left_join(popid)
 
-
+silico_locind <- gl.report.monomorphs(silico_locind)
 
 # csv keep files ----------------------------------------------------------
 
@@ -360,7 +360,7 @@ tympo.silico <- gl.read.silicodart('Report_DTym25-13579_SilicoDArT.csv',
 setwd(prjdir)
   
 
-# checks ------------------------------------------------------------------
+# CHECKS ------------------------------------------------------------------
 #gl.subsample.ind(tympo.gl, n = 20)
 tympo.gl
 gl.report.monomorphs(tympo.gl)
@@ -387,8 +387,9 @@ tympo.gl_filtered <- gl.filter.secondaries(tympo.gl_filtered)
 ## pcoa --------------------------------------------------------------------
 pop(tympo.gl_filtered) <- tympo.gl_filtered@other$ind.metrics$pop
 popNames(tympo.gl_filtered)
+#levels(pop(tympo.gl_filtered)) <- c('Cookanalla', 'North Canberra', 'Jerra East', 'Jerra West', 'Unknown')
 pc <- gl.pcoa(tympo.gl_filtered)
-gl.pcoa.plot(pc, tympo.gl_filtered, yaxis = 2, xaxis = 1)
+p<-gl.pcoa.plot(pc, tympo.gl_filtered, yaxis = 2, xaxis = 1)
 
 
 
@@ -419,7 +420,6 @@ pcdf %>%
 
 
 
-tympo_filtered <- gl.reassign.pop()
 
 
 ## diversity ---------------------------------------------------------------

@@ -153,6 +153,7 @@ h4 {
 
 .fu {
     color: #427479;
+    font-weight: bold;
 }
 
 .ot {
@@ -224,7 +225,7 @@ pre.sourceCode {
 
 pre:not([class]) {
     background-color: white;
-    border: 2px solid darkseagreen;
+    border: 1px solid rgba(66, 116, 121, 0.1);
 }
 
 /*------- In line code aesthetic --------*/
@@ -319,6 +320,34 @@ a:hover, a:focus {
     max-height: 100px !important; /* Adjust this value as needed for smaller popovers */
 }
 /*------- Buttons -------*/
+
+
+.menuButton {
+  display: inline-block;           /* So padding works like a button */
+  background-color: #867;
+  color: #fff !important;                   /* White text */
+  text-decoration: none;           /* Remove underline */
+  border: none;                    /* If you later use <button>, this keeps parity */
+  padding: 12px 24px;     /* t r b l */
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-align: center;
+}
+
+.menuButton:hover {
+  background-color: #dbd1e0;
+  text-decoration: none;  
+}
+
+
+.navbar .nav-link.menuButton {
+  color: #fff;
+}
+
+
 
 .btn-primary, .btn-success, .btn-info, .btn-xs, .btn-default {
     color: white;
